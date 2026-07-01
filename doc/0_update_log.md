@@ -1,6 +1,9 @@
 ## 0. Plans and Logs
 
 ### Logs
+_2026 June_
+
+- The `Toml` support is added. This is because I keep forgetting what I have done using the code. So now you can either use a `.toml` format script to start the analysis, or when you run the code through CLI, it will write a `.toml` format script so that you can re-run your analysis later.
 
 *2025 Mar.*
 
@@ -20,7 +23,7 @@
 
 1. Structure factor S(k). This needs to be done with the help of FFTW lib.
 
-2. More flexible xyz/dump/data file import. Data in each colume must be specified before analysis currently. Maybe a `.json` or `.toml` file is really needed to specify everything. And it can be used to repeat previous analysis action.
+~~2. More flexible xyz/dump/data file import. Data in each colume must be specified before analysis currently. Maybe a `.json` or `.toml` file is really needed to specify everything. And it can be used to repeat previous analysis action.~~
 
 3. set dump option, so that data, e.g., RDF can be dumped to external file.
 

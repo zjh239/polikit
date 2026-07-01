@@ -2,6 +2,7 @@
 ! this module reads parameters from command line.
 module cli_parser
     use parser
+    use conf_parser
     implicit none
 
 contains
@@ -28,8 +29,8 @@ contains
         case ('-c','--config')        !computing coption, now read from config
             call get_command_argument(i+1, args)
             conf_file = trim(args)
-            !call from_config(conf_file)
             print *, info//' Reading config file ', trim(conf_file)
+            call from_config(conf_file)
             exit
             ! stop error//' Computing option is deprecated!'
         case ("-p")         !check if pbc is applied
@@ -184,7 +185,6 @@ contains
             end if
         end select
     end do
-    return
   end SUBROUTINE
 
 end module

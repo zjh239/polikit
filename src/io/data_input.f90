@@ -3,7 +3,7 @@
 MODULE data_input
     use precision
     use data_types
-    use parser, only: cutoffs, pbcs
+    use params, only: cutoffs, pbcs
     use logger
     implicit none
     save
@@ -50,7 +50,12 @@ SUBROUTINE get_data_from_file(file_name, path)
         print *, error//' Unknown format!'
         stop
     end if
-
+    
+    ! verify atom type and cutoffs match.
+    if (size(cutoffs) /= 1) then
+      slength = ntype*(ntype-1)/2
+      if (size(cutoffs) /= slength) stop 'Using pair-wise cut-offs, but incorrect number!'
+    end if
     print *, info//' Leaving get xyz subroutine ...'
 END SUBROUTINE
 
