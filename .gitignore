@@ -32,5 +32,5 @@
 *.app
 
 gcm.cache
-test
 build
+!ext/toml-f/src/tomlf/build

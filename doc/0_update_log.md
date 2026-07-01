@@ -18,33 +18,31 @@
 
 ### Plans
 
-- Structure factor S(k)
+1. Structure factor S(k). This needs to be done with the help of FFTW lib.
 
-1. ~Pair-wise cutoff in neighbor list construction, and pair-wise coordination analysis.~
+2. More flexible xyz/dump/data file import. Data in each colume must be specified before analysis currently. Maybe a `.json` or `.toml` file is really needed to specify everything. And it can be used to repeat previous analysis action.
 
-2. More flexible xyz/dump/data file import. Data in each colume must be specified before analysis currently. Maybe a `.json` or `.toml` file is really needed to specify everything.
+3. set dump option, so that data, e.g., RDF can be dumped to external file.
 
-- set dump option, so that data, e.g., RDF can be dumped to external file.
-
-3. Atom type for pure silicon.
-
-4. set capacity of neigh/poly_neigh as a constant.
+4. Atom type for pure silicon.
 
 ~5. RSA path list build part optimization.~ Results show that there is no great difference, unlike the main ring list part. It is actually more important to optimize the algorithm of 'find rings' part.
 
 6. RSA further analysis of the results, like how to modify the ring. RSA based on other ring types, such as shortest-path rings.
 
-- set the branch length parameter from CLI.
+12. More detailed polyhedral analysis data. The question is about multi-cation system, we hope to see if only certain kind of polyhedra are forming a different kind of network, e.g., AlO polyhedra in CaAl glass system is forming a CS polyhedra system.
 
-7. parallel analysis optimization.
+13. Use openMP to do multi-thread analysis. Maybe starting with neighbor constructing and polyhedral analysis.
+
+7. set the branch length parameter for RSA from CLI.
 
 8. cavity analysis
 
-3. find good way to dump atomic properties, in dynamic mode each static analysis dump the results in a text file.
+9. find good way to dump atomic properties, in dynamic mode each static analysis dump the results in a text file.
 
-4. decide how the comparison data is exported: for each dynamic analysis type write a specific comparison subroutine.
+10. decide how the comparison data is exported: for each dynamic analysis type write a specific comparison subroutine.
 
-5. test script.
+11. test script.
 
 <!-- [![GitLab](https://img.shields.io/badge/GitLab-Repository-FFD700?logo=gitlab&logoColor=white&labelColor=DC143C)](https://gitlab.com/jhcheung/polikit) [![Gitee](https://img.shields.io/badge/Gitee-Repository-FFD700?logo=gitee&logoColor=white&labelColor=DC143C)](https://gitlab.com/jiahuiiii)-->
 
@@ -65,7 +63,9 @@
 parser.f90
     ^
     |
-main.f90 ---> static.f90 -?-> nf.f90 -?-> ph.f90 -?-> bad.f90 -?-> rings.f90
+main.f90
+    |
+init.f90 ---> static.f90 -?-> nf.f90 -?-> ph.f90 -?-> bad.f90 -?-> rings.f90
     |            ^   |
 [multi-frame?]   |   |-------------------------------|
     |            |                                   v

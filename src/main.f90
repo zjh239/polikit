@@ -5,6 +5,7 @@ program main
     use flags
     use parser
     use init
+    use logger
 
     use neighbor_finder
     use poly_analysis
@@ -18,18 +19,17 @@ program main
     use d2min
     use cluster
 
-    use omp_lib
+    use omp_test
     implicit none
 
     real :: start, finish
-
-    call omp_set_num_threads(1)
-
+    call logger_init()
     call cpu_time(start)
-        ! put test code here
+! put test code here
+!     call t1()
 
+!
     call get_input_options() ! get the command line input strings
-
 
     if (flag_test .eqv. .true.) then
         print *, 'Performing test module ...'
@@ -38,21 +38,21 @@ program main
         call cpu_time(finish)
         print '("Wall time = ",f7.2," seconds.")', finish-start
     else if (static .eqv. .true.) then
-        print *, "Starting static analysis ..."
+        print *, warn//" Starting static analysis;"
         call static_analysis(0)
 
         call cpu_time(finish)
-        print '("Wall time = ",f7.2," seconds.")', (finish-start)/omp_get_max_threads()
+        print '(a,f7.2,a)', ' '//warn//" Wall time = ",(finish-start)/omp_get_max_threads()," seconds."
     else
-
+        if (frame_interval == 0) stop error//' Frame interval missing for dynamic analysis!'
         call dynamic()
 
         call cpu_time(finish)
         if (finish-start>0.01) &
-        print '("Wall time = ",f7.2," seconds.")', (finish-start)/omp_get_max_threads()
-!         print *, 'dynamic analysis report error'
+        print '(a,f7.2,a)', ' '//warn//" Wall time = ",(finish-start)/omp_get_max_threads()," seconds."
+!         print *,
 !         print *, (interval < 0), (flag_nc .eqv. .true.)
-!         stop
+!         stop error//' Dynamic analysis report error'
     end if
 
 contains
@@ -63,20 +63,20 @@ SUBROUTINE dynamic()
     IMPLICIT NONE
     integer :: fcounter
 
-    do fcounter = 1, fnumber
-        if (fcounter == 1) print *, "Starting dynamic analysis ..."
+    do fcounter = skip_frame+1, fnumber
+        if (fcounter == 1) print *, warn//" Starting dynamic analysis ..."
 
         file_name = trim(fnames(fcounter))
-        print '(A, A, A, I0)', ' Performing dynamic analysis on ', trim(file_name), ', this is frame number ', fcounter
+        print '(A, A, A, I0)', warn//' Performing dynamic analysis on ', trim(file_name), ', this is frame number ', fcounter
 
         call static_analysis(fcounter)
         call collect_data(fcounter)
-        call compare_data(fcounter)
-        call static_post_d(fcounter)
+        if (fcounter > frame_interval + skip_frame) call compare_data()
+        if (fcounter > frame_interval + skip_frame) call static_post_d(fcounter)
 
         call mem_clean()
 
-        print *, '---------------------------End of Frame-----------------------------'
+        print *, info//' ---------------------------End of Frame-----------------------------'
     end do
 
 END SUBROUTINE dynamic
@@ -89,9 +89,9 @@ subroutine collect_data(cur_frame)
     if (flag_nc)        call collect_neighbor(cur_frame)
     if (flag_d2min)     call collect_xyz(cur_frame)
 
-
 end subroutine collect_data
 
+! D2min analysis need the position vectors of past to compare.
 subroutine collect_xyz(cur_frame)
     implicit none
     ! IN:
@@ -196,12 +196,12 @@ subroutine collect_neighbor(cur_frame)
 
 end subroutine collect_neighbor
 
-subroutine compare_data(cur_frame)
+subroutine compare_data()
     implicit none
-    integer, intent(in) :: cur_frame
+!     integer, intent(in) :: cur_frame
 
-    if (flag_nc .and. cur_frame>frame_interval)  call compare_neighbor() ! neighbor_finder
-    if (flag_d2min .and. cur_frame>frame_interval) call get_d2min()
+    if (flag_nc)  call compare_neighbor() ! neighbor_finder
+    if (flag_d2min) call get_d2min()
 
 !     if (flag_nf)  call neighbor_finder_old
 !     if (flag_nfd) call compare_neighbor_d()
@@ -264,7 +264,7 @@ subroutine test_run()
 
         if (frame_interval /= 0) then
             call collect_data(fcounter)
-            call compare_data(fcounter)
+            call compare_data()
         end if
 
         call mem_clean()

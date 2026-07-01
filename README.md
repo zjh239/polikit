@@ -8,6 +8,10 @@ This package is originally developed for polyhedral analysis of amorphous struct
 
 Please contact **zjh239@foxmail.com** if you have bugs or issues to report.
 
+#### 0.5
+
+- Read from `.toml` files.
+
 #### 0.4  *(3 Mar. 2025)*
 
  - Non-affine displacement analysis.
@@ -48,17 +52,21 @@ At the root directory of the code:
 
 5. Radial distribution function
 
-6. Non-affine displacement
-
 7. Cluster analysis
 
 ### Analysis of a series of configurations:
 
-1. Topological constraint analysis
+1. Non-affine displacement (D2min)
 
-2. Neighbor change analysis
+2. Localized plastic events analysis (LPSE)
 
-3. Polyhedral neighbor change analysis
+3. Cluster inheritence analysis
+
+4. Topological constraint analysis
+
+5. Neighbor change analysis
+
+6. Polyhedral neighbor change analysis
 
 ## Usage
 For static analysis(`-f`):
@@ -67,15 +75,17 @@ For static analysis(`-f`):
 
 `-p [int]` can be 1 or 0, decides whether periodic boundary condition will be applied.
 
-`-[key] [parameter]` gives computing options and corresponding parameter. Now the availables are: `poly` - polyhedral analysis, `bad` - bond angle analysis, `rdf` - radial distribution function, `ring` - ring statistics analysis, `d2min` - non-affine displacement analysis, `cluster` - cluster analysis.
+`-[key] [parameters] ...` gives computing options and corresponding parameters. Now the availables are: `poly [cutoff]` - polyhedral analysis, `bad [cutoff]` - bond angle analysis, `rdf [cutoff]` - radial distribution function, `ring [cutoff] [max size]` - ring statistics analysis, `d2min [cutoff]` - non-affine displacement analysis, `cluster [cutoff]` - cluster analysis, `lpes [d2min_cutoff] [cutoff]` - LPSE analysis (combined of d2min and cluster analysis).
 
 For dynamic analysis(`-d`):
 
 **`./polikit -d dumpfiles -os 3 -p 1 -d2min 4.6`**
 
-`-d` gives a directory name that contains .xyz files. 20 is the frame invertal for dynamic comparison. Other parameters work in the same way as in static analysis.
+`-d` -- giving a directory name that contains .xyz files. 20 is the frame invertal for dynamic comparison. Other parameters work in the same way as in static analysis.
 
-`-os [int]` indicates the frame interval, which is applicable when frame-wise comparison is performed.
+`-os [int]` -- frame interval, which is applicable when frame-wise comparison is performed.
+
+`-skip [int]` -- skipping the first N frames, and starting from the N+1 frame. Note that sometimes the frame number may differ from the file name.
 
 ## Examples
 
@@ -101,7 +111,7 @@ For dynamic analysis(`-d`):
 
 - Ring statistics analysis
 
-`./polikit -f ../test/ga2o3_test.xyz -p 1 -ring 2.3`
+`./polikit -f ../test/ga2o3_test.xyz -p 1 -ring 2.3 8`
 
 - Dynamic neighbor change analysis
 
@@ -111,6 +121,52 @@ For dynamic analysis(`-d`):
 
 `./polikit -d ../test/test_dir/ -os 2 -p 1 -d2min 4.6`
 
-- D2min analysis and cluster analysis on high D2min atoms
+- D2min analysis and cluster analysis on high D2min atoms / LPSE analysis
 
 `./polikit -d ../test/test_dir/ -os 2 -p 1 -d2min 4.6 -cluster 2.3`
+
+`./polikit -d ../test/test_dir/ -os 2 -p 1 -lpse 4.6 2.3`
+
+- LPSE inheritence analysis
+
+`./polikit -d ../test/test_dir/ -os 1 -p 1 -ci 4.6 2.3`
+
+## Extract results
+
+Lines correspond to specific results are given a specific initial letter or letters. Therefore, those lines can be extracted using `grep`, `awk`, and `csplit` command. Suppose the code is run with a dumping option `> out.log`, below are the ways to extract specific analysis results.
+
+1. Data that only takes one line for each structure.
+
+- Coordination number distribution
+
+`grep 'c|' out.log > cn.txt`
+
+- Polyhedral type distribution
+
+`grep 'p|' out.log > poly.txt`
+
+2. Data that takes a fixed number of lines.
+
+- Bond angle distribution
+
+`grep -A 180 'b2|' out.log > bad.txt`
+
+- D2min analysis
+
+`grep -A 400 'd1|' out.log > d2min.txt`
+
+- Split file
+
+`csplit -f mbad_ -b %d.txt bad.txt '/--/' '{*}' -s -k`
+
+This splits the file on every '--' line.
+
+3. Data that takes uncertain number of lines, with a starting and ending initial respectively.
+
+- Cluster analysis results
+
+`awk '/ c1\|/  {inblock = 1} / c2\|/  {inblock = 0}  inblock == 1'  out.log > cluster.txt`
+
+- Split file
+
+`csplit -f mcluster_ -n 3 cluster.txt '/ c1|/' '{*}' -s -k`

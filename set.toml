@@ -1,0 +1,14 @@
+[basic]
+static = true
+file = "../test/ga2o3_test.xyz"
+pbc = [1,1,1]
+
+[analysis]
+nf = true
+bad = true
+
+[analysis.nf_params]
+cutoff = [2.3, 2.3, 2.3]
+
+[analysis.bad_params]
+bin = 180

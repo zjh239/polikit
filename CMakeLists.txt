@@ -2,10 +2,19 @@ cmake_minimum_required(VERSION 3.20)
 
 project(polikit
     VERSION 0.4
-    DESCRIPTION "Polikit: Polyhedral analyzing toolkits."
+    DESCRIPTION "polikit -- Polyhedral analysis module"
     LANGUAGES Fortran)
 
 enable_language(Fortran)
+
+file(GLOB SRC
+  src/basic/*.f90
+  src/func/*.f90
+  src/io/*.f90
+  src/main.f90
+)
+
+add_subdirectory(ext/toml-f)
 
 option(DEBUG "Debug compile options" OFF)
 
@@ -17,7 +26,21 @@ else()
     message(STATUS "Building in Release mode")
 endif()
 
-find_package(OpenMP)
+add_executable(polikit ${SRC})
+
+# Optional dependencies
+find_library(FFTW3_LIB NAMES fftw3)
+find_path(FFTW3_INCLUDE NAMES fftw3.f03 fftw3.f PATH_SUFFIXES fftw3)
+find_package(OpenMP QUIET)
+
+if(FFTW3_LIB AND FFTW3_INCLUDE)
+    message(STATUS "FFTW3 found -- enabling FFT support")
+    target_link_libraries(polikit PRIVATE ${FFTW3_LIB})
+    target_include_directories(polikit PRIVATE ${FFTW3_INCLUDE})
+    target_compile_definitions(polikit PRIVATE HAVE_FFTW3)
+else()
+    message(STATUS "FFTW3 not found -- FFT support disabled")
+endif()
 
 # Get the number of CPU cores
 if(NOT DEFINED OMP_THREAD_COUNT)
@@ -27,16 +50,14 @@ if(NOT DEFINED OMP_THREAD_COUNT)
 endif()
 
 if(OpenMP_Fortran_FOUND)
-    message(STATUS "Building with OpenMP on ${OMP_THREAD_COUNT} threads")
-
-    # Set the number of threads as a compile definition
+    message(STATUS "OpenMP found -- enabling OpenMP support")
     add_compile_definitions(OMP_THREAD_COUNT=${OMP_THREAD_COUNT})
-
-    add_compile_options(-fopenmp)
-    add_link_options(-fopenmp)
-    message(STATUS "Building with OMP")
+    target_link_libraries(polikit PRIVATE OpenMP::OpenMP_Fortran)
+    target_compile_definitions(polikit PRIVATE HAVE_OPENMP)
+else()
+    message(STATUS "OpenMP not found -- OpenMP support disabled")
 endif()
 
-file(GLOB SRC src/*.f90)
+target_link_libraries(polikit PRIVATE toml-f)
 
-add_executable(polikit ${COMPILE_OPTIONS} ${SRC})
+
