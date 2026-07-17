@@ -91,6 +91,7 @@ SUBROUTINE create_bins(rCut, cells_n, cells_xpbc, cells_ypbc, cells_zpbc, cells_
 
 !!$omp parallel do default(private) shared(cells_n, cells_ids)
   do atom = 1, natom
+    print *, 'This is thread: ', OMP_GET_THREAD_NUM()
     xbin = CEILING(realxyz(atom, 1)/rCut)
     ybin = CEILING(realxyz(atom, 2)/rCut)
     zbin = CEILING(realxyz(atom, 3)/rCut)
@@ -101,6 +102,9 @@ SUBROUTINE create_bins(rCut, cells_n, cells_xpbc, cells_ypbc, cells_zpbc, cells_
     if (xbin == 0) xbin = 1
     if (ybin == 0) ybin = 1
     if (zbin == 0) zbin = 1
+    
+    if (atom == 3610) print *, xbin, ybin, zbin
+
 
     cells_n(xbin,ybin,zbin) = cells_n(xbin,ybin,zbin) + 1
     if (cells_n(xbin,ybin,zbin) > bincap) then
@@ -113,8 +117,7 @@ SUBROUTINE create_bins(rCut, cells_n, cells_xpbc, cells_ypbc, cells_zpbc, cells_
       deallocate(cells_ids)
       goto 198
       if (bin_size_factor > 7.0) then   ! For 1 million system, this limit the memory cost on ~GB level.
-        print *, error//" Bin capacity full due to unknown reason, stopping."
-        stop
+        stop error//"Bin capacity full due to unknown reason, stopping."
       end if
     end if
     cells_ids(xbin,ybin,zbin,cells_n(xbin,ybin,zbin)) = atom
@@ -270,6 +273,7 @@ SUBROUTINE find_neighbors(cutoffs)
   end do
 !$omp end parallel do
   call print_cn
+
 
     do i = 1, natom
       call bubble_sort(n_neighbor(i), neighbor(i,:))

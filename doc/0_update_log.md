@@ -23,7 +23,7 @@ _2026 June_
 
 1. Structure factor S(k). This needs to be done with the help of FFTW lib.
 
-~~2. More flexible xyz/dump/data file import. Data in each colume must be specified before analysis currently. Maybe a `.json` or `.toml` file is really needed to specify everything. And it can be used to repeat previous analysis action.~~
+2. ~~More flexible xyz/dump/data file import. Data in each colume must be specified before analysis currently. Maybe a `.json` or `.toml` file is really needed to specify everything. And it can be used to repeat previous analysis action.~~
 
 3. set dump option, so that data, e.g., RDF can be dumped to external file.
 
@@ -31,7 +31,7 @@ _2026 June_
 
 ~5. RSA path list build part optimization.~ Results show that there is no great difference, unlike the main ring list part. It is actually more important to optimize the algorithm of 'find rings' part.
 
-6. RSA further analysis of the results, like how to modify the ring. RSA based on other ring types, such as shortest-path rings.
+6. RSA further analysis of the results, including roundness (1 - variance/mean), or eccentricity (sqrt(1-(b/a)^2)). RSA based on other ring types, such as shortest-path rings.
 
 12. More detailed polyhedral analysis data. The question is about multi-cation system, we hope to see if only certain kind of polyhedra are forming a different kind of network, e.g., AlO polyhedra in CaAl glass system is forming a CS polyhedra system.
 

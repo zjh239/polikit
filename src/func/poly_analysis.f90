@@ -18,6 +18,7 @@ module poly_analysis
       integer, dimension(atom_number) :: topo_type = 0  ! 1: corner; 2: edge; 3: face
       integer, dimension(atom_number) :: poly_neigh_number = 0
       integer, dimension(atom_number, capacity) :: poly_list = 0  ! polyhedral neighbor list
+      integer, dimension(atom_number, capacity) :: topo_list = 0  ! topological type with each of its neighbor
   end type
 
   type(polyhedron(atom_number = :, capacity = :)), allocatable :: polys
@@ -42,8 +43,11 @@ SUBROUTINE poly_neighbor()
   allocate(polyhedron(atom_number = natom, capacity = 30) :: polys, STAT=ierr, ERRMSG=emsg)
 
   associate(ref_n => neigh_list%n_neighbor, ref_list => neigh_list%neighbors, &
-            ln => polys%topo_type, ptype => coord_data%ptype, &
-            poly_n => polys%poly_neigh_number, poly_list => polys%poly_list)
+            ln => polys%topo_type, &
+            ptype => coord_data%ptype, &
+            poly_n => polys%poly_neigh_number,&
+            poly_list => polys%poly_list,&
+            topo_list => polys%topo_list)
 
   ln = 0
   poly_n = 0
@@ -73,7 +77,7 @@ SUBROUTINE poly_neighbor()
                   poly_n(id) = poly_n(id)+1
                   poly_list(id, poly_n(id)) = neigh_2
                   if (poly_n(id) == 30) then
-                    print *, 'Warning: maximum polyhedral neighbor length reached.'
+                    print *, warn//' Maximum polyhedral neighbor length reached.'
                   endif
                   exit
                 end if
@@ -112,10 +116,14 @@ SUBROUTINE poly_neighbor()
             endif
         enddo
 
-        if (ln(id)< same_neigh_num) then
-          ln(id)= same_neigh_num
-        endif
+        topo_list(id,j) = same_neigh_num
+
+!         if (ln(id)< same_neigh_num) then
+!           ln(id)= same_neigh_num
+!         endif
       enddo
+      ln(id) = maxval(topo_list(id,:))
+
     endif
   enddo
 
