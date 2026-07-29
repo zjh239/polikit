@@ -91,7 +91,6 @@ SUBROUTINE create_bins(rCut, cells_n, cells_xpbc, cells_ypbc, cells_zpbc, cells_
 
 !!$omp parallel do default(private) shared(cells_n, cells_ids)
   do atom = 1, natom
-    print *, 'This is thread: ', OMP_GET_THREAD_NUM()
     xbin = CEILING(realxyz(atom, 1)/rCut)
     ybin = CEILING(realxyz(atom, 2)/rCut)
     zbin = CEILING(realxyz(atom, 3)/rCut)
@@ -117,7 +116,7 @@ SUBROUTINE create_bins(rCut, cells_n, cells_xpbc, cells_ypbc, cells_zpbc, cells_
       deallocate(cells_ids)
       goto 198
       if (bin_size_factor > 7.0) then   ! For 1 million system, this limit the memory cost on ~GB level.
-        stop error//"Bin capacity full due to unknown reason, stopping."
+        stop error//" Bin capacity full due to unknown reason, stopping."
       end if
     end if
     cells_ids(xbin,ybin,zbin,cells_n(xbin,ybin,zbin)) = atom
@@ -299,7 +298,7 @@ SUBROUTINE find_neighbors_d(cutoffs, flag_d2min)
 
   real(dp), allocatable :: r(:,:)
 
-  print *, info//'Entering neighbor list constructing function ...'
+  print *, info//' Entering neighbor list constructing function ...'
 
   if (.not. allocated(r)) allocate(r(ntype, ntype))
 
@@ -320,7 +319,7 @@ SUBROUTINE find_neighbors_d(cutoffs, flag_d2min)
   print *, info//' Capacity of neighbor list is set to: ', n_cap
 
   if (.not. allocated(neigh_list)) allocate(neighbor_list(atom_number = natom, capacity = n_cap) :: neigh_list)
-  print '(a,i0,a)', info//' Constructing neighbor list, memory cost: ', sizeof(neigh_list%neighbors)/1024, ' KB;'
+  print '(a,i0,a)', ' '//info//' Constructing neighbor list, memory cost: ', sizeof(neigh_list%neighbors)/1024, ' KB;'
   neigh_list%n_neighbor = 0
   neigh_list%neighbors = 0
 

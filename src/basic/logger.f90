@@ -53,19 +53,19 @@ subroutine logger_init()
     use_color = isatty(1)
 
     if (use_color) then
-        error = red//'[-error-]'//white
-        info  = green//'[--info-]'//white
-        warn  = yellow//'[--warn-]'//white
-        trace = blue//'[-trace-]'//white
-        other = magenta//'[-other-]'//white
-        debug = cyan//'[-debug-]'//white
+        error = red//'[error]'//white
+        info  = green//'[-info]'//white
+        warn  = yellow//'[-warn]'//white
+        trace = blue//'[trace]'//white
+        other = magenta//'[other]'//white
+        debug = cyan//'[debug]'//white
     else
-        error = '[-error-]'
-        info  = '[--info-]'
-        warn  = '[--warn-]'
-        trace = '[-trace-]'
-        other = '[-other-]'
-        debug = '[-debug-]'
+        error = '[error]'
+        info  = '[-info]'
+        warn  = '[-warn]'
+        trace = '[trace]'
+        other = '[other]'
+        debug = '[debug]'
     end if
 
 !     print *, warn//' Initializing logger;'

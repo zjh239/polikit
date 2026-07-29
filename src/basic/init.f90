@@ -91,7 +91,7 @@ subroutine collect_cluster()
 end subroutine collect_cluster
 
 subroutine init_msg()
-    print *,    "Polikit - Atomistic Simulation Analysis Tool"
+    print *,    " Polikit - Atomistic Simulation Analysis Tool"
     print *,    "    V0.4"
     print *,    " Bug report: zhgjiahui@gmail.com"
     print *,    "    Please kindly cite:"
