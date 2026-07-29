@@ -212,9 +212,9 @@ END SUBROUTINE
 
 SUBROUTINE version_msg()
 
-print *,    warn//" PoAM - Polyhedral Analysis Module"
-print *,    warn//"    V0.4"
-print *,    warn//" Bug report: zjh239@foxmail.com"
+    print *, info//" Polikit - Atomistic Simulation Analysis Tool"
+    print *, info//"    V0.4"
+    print *, info//" Bug report: zhgjiahui@gmail.com"
 
 END SUBROUTINE
 

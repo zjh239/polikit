@@ -68,6 +68,6 @@ subroutine logger_init()
         debug = '[-debug-]'
     end if
 
-    print *, warn//' Initializing logger;'
+!     print *, warn//' Initializing logger;'
 end subroutine
 end module logger

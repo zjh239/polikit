@@ -93,7 +93,7 @@ end subroutine collect_cluster
 subroutine init_msg()
     print *,    "Polikit - Atomistic Simulation Analysis Tool"
     print *,    "    V0.4"
-    print *,    "Bug report: zjh239@foxmail.com"
+    print *,    " Bug report: zhgjiahui@gmail.com"
     print *,    "    Please kindly cite:"
     print *,    " ---- "
     print *,    "    Room temperature plasticity in amorphous SiO2 and amorphous Al2O3: A computational"
