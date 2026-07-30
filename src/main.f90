@@ -29,7 +29,9 @@ program main
 !     call t1()
 
 !
-    call get_input_options() ! get the command line input strings
+    call initialize()
+!     call init_msg()
+!     call get_input_options() ! get the command line input strings
 
     if (flag_test .eqv. .true.) then
         print *, 'Performing test module ...'

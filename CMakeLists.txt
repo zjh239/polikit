@@ -19,7 +19,16 @@ add_subdirectory(ext/toml-f)
 option(DEBUG "Debug compile options" OFF)
 
 if(DEBUG)
-    add_compile_options(-fbounds-check)
+    add_compile_options(
+        -O0
+        -g
+        -Wall
+        -Wextra
+        -fcheck=all
+        -fbacktrace
+        -finit-real=snan
+        -finit-integer=-999999
+        -ffpe-trap=invalid,zero,overflow)
     message(STATUS "Building in Debug mode")
 else()
     add_compile_options(-O3)

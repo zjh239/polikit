@@ -6,7 +6,7 @@
 
 This package is originally developed for polyhedral analysis of amorphous structures. Now it has modules for other analysis methods, including bond angle analysis, RDF analysis, TCT analysis and ring statistics analysis. For now, file formats including xyz, lammps data file, lammps dump file can be read, but please carefully check the format when using the package. Analysis can be performed in either static or dynamic way, depends on whether the analysis only involves one file, or also comparison with other files.
 
-Please contact **zjh239@foxmail.com** if you have bugs or issues to report.
+Please contact **zhgjiahui@gmail.com** if you have bugs or issues to report.
 
 #### 0.5
 
@@ -34,7 +34,7 @@ At the root directory of the code:
 
 1. `mkdir build && cd build`
 
-2. `cmake ../.` or `cmake -DDEBUG=on ../.` for debug mode.
+2. `cmake ../.` or `cmake -DDEBUG=yes ../.` for debug mode.
 
 3. `make` or `make -j`
 
@@ -73,9 +73,11 @@ For static analysis(`-f`):
 
 **`./polikit -f abc.xyz -p 1 -poly 2.3`**
 
-`-p [int]` can be 1 or 0, decides whether periodic boundary condition will be applied.
+`-p [int]` can be 1 or 0, decides whether periodic boundary condition will be applied. For dimension-wise PBC settings, it should be given like `1, 1, 1`, means that in x, y, z dimensions we use periodic condition respectively.
 
 `-[key] [parameters] ...` gives computing options and corresponding parameters. Now the availables are: `poly [cutoff]` - polyhedral analysis, `bad [cutoff]` - bond angle analysis, `rdf [cutoff]` - radial distribution function, `ring [cutoff] [max size]` - ring statistics analysis, `d2min [cutoff]` - non-affine displacement analysis, `cluster [cutoff]` - cluster analysis, `lpes [d2min_cutoff] [cutoff]` - LPSE analysis (combined of d2min and cluster analysis).
+
+`[cutoff]` parameter can be given as a scalar or in pair-wise way. If the latter, it should be given in correct number and sequence, e.g., for 3-element system, it should be given as `[1-1], [1-2], [1-3], [2-2], [2-3], [3-3]`, like `0, 0, 2.1, 0, 2.8, 0`.
 
 For dynamic analysis(`-d`):
 

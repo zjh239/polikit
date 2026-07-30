@@ -7,7 +7,7 @@ module bad  ! bond angle distribution
 
 subroutine bond_angle()
   implicit none
-  integer(inp) :: id, j, k, c, p
+  integer(inp) :: id, j, k, c
   integer :: bad_id
   integer :: bad_cap
   integer :: neigh_1, neigh_2
@@ -103,7 +103,6 @@ subroutine hist_of_bad(array, type_array)
 
   ! Construct header line.
   head = 'b2| theta     sum    '
-
 
   do i = 1, ntype
       do t1=1, ntype

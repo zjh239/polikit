@@ -35,9 +35,9 @@ SUBROUTINE poly_neighbor()
   !
   !!!!!!!!!!!!!!!!!!
   IMPLICIT NONE
-  integer :: m,n,i,j, k, same_neigh_num
+  integer :: m, n, i, j, k, same_neigh_num
   integer :: neigh_1, neigh_2, id, checkid
-  integer, pointer :: ref_n(:), ref_list(:,:)
+!   integer, pointer :: ref_n(:), ref_list(:,:)
   print *, warn//' Starting polyhedral analysis subroutine;'
 
   allocate(polyhedron(atom_number = natom, capacity = 30) :: polys, STAT=ierr, ERRMSG=emsg)

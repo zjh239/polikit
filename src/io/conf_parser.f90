@@ -64,22 +64,22 @@ subroutine from_config(conf_file)
     if (associated(var_table)) then
       call get_value(var_table, 'cutoff', tmp_array, stat=stat)
       
-      if (stat == 0) then
-        allocate(cutoffs(len(tmp_array)))
-        do i = 1, len(tmp_array)
-          call get_value(tmp_array, i, cutoffs(i))
-        end do
-        print *, info//' Cutoff values are:', cutoffs
-      else
-        call get_value(var_table, "cutoff", tmp_real, stat=stat)
-        if (stat == 0) then
-          allocate(cutoffs(1))
-          cutoffs(1) = tmp_real
-          print *, info//' Cutoff values are:', cutoffs
-        else
-          print *, "Entry not found or type mismatch"
-        end if
-      end if
+!       if (stat == 0) then
+!         allocate(cutoffs(len(tmp_array)))
+!         do i = 1, len(tmp_array)
+!           call get_value(tmp_array, i, cutoffs(i))
+!         end do
+!         print *, info//' Cutoff values are:', cutoffs
+!       else
+!         call get_value(var_table, "cutoff", tmp_real, stat=stat)
+!         if (stat == 0) then
+!           allocate(cutoffs(1))
+!           cutoffs(1) = tmp_real
+!           print *, info//' Cutoff values are:', cutoffs
+!         else
+!           print *, "Entry not found or type mismatch"
+!         end if
+!       end if
     else
       stop 'No variable provided for requisted analysis!'
     end if

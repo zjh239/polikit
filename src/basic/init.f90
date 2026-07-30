@@ -22,7 +22,7 @@ module init
 contains
 
 subroutine initialize()
-
+    call init_msg()
     call get_input_options()
 
 end subroutine initialize
@@ -33,9 +33,9 @@ subroutine static_analysis(cur_frame)
 
     call get_data_from_file(file_name, path)
 
-    if (flag_nf)  call find_neighbors(cutoffs) ! if (flag_nf)  call neighbor_finder_old
-    if (flag_nfd .and. .not. flag_d2min) call find_neighbors_d(cutoffs, flag_d2min)
-    if (flag_nfd .and. flag_d2min) call find_neighbors_d([d2min_r], flag_d2min)
+    if (flag_nf)  call find_neighbors(cutoffs, .false.) ! if (flag_nf)  call neighbor_finder_old
+    if (flag_nfd .and. .not. flag_d2min) call find_neighbors(cutoffs, .true.)
+    if (flag_nfd .and. flag_d2min) call find_neighbors(d2min_r, .true.)
     if (flag_rdf) call calculate_rdf()
     if (flag_wa) call wa_parameter()
     if (flag_poly) call poly_neighbor()
@@ -54,9 +54,8 @@ end subroutine static_analysis
 subroutine static_post_d(cur_frame)
     implicit none
     integer, intent(in) :: cur_frame
-    real(dp) :: tmp_r(1)
 
-    if (flag_cluster) call find_neighbors(cutoffs)
+    if (flag_cluster) call find_neighbors(cutoffs, .false.)
     if (flag_cluster) call cluster_analysis()
 
     if (flag_lpse) call cluster_pos(cur_frame)
@@ -91,15 +90,16 @@ subroutine collect_cluster()
 end subroutine collect_cluster
 
 subroutine init_msg()
-    print *,    " Polikit - Atomistic Simulation Analysis Tool"
-    print *,    "    V0.4"
-    print *,    " Bug report: zhgjiahui@gmail.com"
-    print *,    "    Please kindly cite:"
-    print *,    " ---- "
-    print *,    "    Room temperature plasticity in amorphous SiO2 and amorphous Al2O3: A computational"
-    print *,    "   and topological study. Zhang, J., Frankberg, E. J., Kalikka, J. & Kuronen, A. Acta Mater."
-    print *,    "   259, 119223. https://doi.org/10.1016/j.actamat.2023.119223 (2023)."
-    print *,    " ---- "
+    print *,  other//" Polikit - Atomistic Simulation Analysis Tool"
+    print *,  other//"    V0.4"
+    print *,  other//" Bug report: zhgjiahui@gmail.com"
+    print *,  other//" Please kindly cite:"
+    print *,  other//"---"
+    print *,  other//" Room temperature plasticity in amorphous SiO2 and amorphous Al2O3 : A &
+    computational and topological study. Zhang, J., Frankberg, E. J., Kalikka, J. &
+    Kuronen, A. Acta Mater. 259, (2023) 119223. https://doi.org/10.1016/j.actamat.2023.119223"
+    print *,  warn//"---"
+
 end subroutine
 
 end module

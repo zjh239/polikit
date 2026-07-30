@@ -20,7 +20,7 @@ subroutine bubble_sort(last,array)
     ! last is the position of last element in array.
     integer(4), intent(inout) :: array(:) !length should match the main subroutine
     integer(4), intent(in) :: last
-    integer(4) :: temp, i, j, k
+    integer(4) :: temp, i, j
 
     do i=last-1,1,-1
         do j=1,i

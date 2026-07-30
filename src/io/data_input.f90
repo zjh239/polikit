@@ -3,8 +3,9 @@
 MODULE data_input
     use precision
     use data_types
-    use params, only: cutoffs, pbcs
+    use params, only: cutoff_str, cutoffs, pbcs
     use logger
+    use parser, only: get_cutoff
     implicit none
     save
 
@@ -31,7 +32,7 @@ SUBROUTINE get_data_from_file(file_name, path)
     character(len=*), intent(in)::file_name
     character(len=*), intent(in)::path
     !
-    integer :: slength
+
 
 !     print *, 'Reading xyz from file named ', file_name ! trim(dpath)//fname
 !     slength = len(trim(fname))
@@ -51,11 +52,8 @@ SUBROUTINE get_data_from_file(file_name, path)
         stop
     end if
     
-    ! verify atom type and cutoffs match.
-    if (size(cutoffs) /= 1) then
-      slength = ntype*(ntype-1)/2
-      if (size(cutoffs) /= slength) stop 'Using pair-wise cut-offs, but incorrect number!'
-    end if
+    cutoffs = get_cutoff(cutoff_str, ntype)
+
     print *, info//' Leaving get xyz subroutine ...'
 END SUBROUTINE
 
@@ -115,9 +113,7 @@ SUBROUTINE read_dump_file(file_name, path)
     !
     integer :: i, id
     real(dp) :: xlo, xhi, ylo, yhi, zlo, zhi
-    real(dp) :: tmp_x, tmp_y, tmp_z
     character(len=10), allocatable :: typechar(:)
-    character(len=10) :: tmptype
 
     open(unit=20, file=trim(path)//file_name, status='old', iostat=ierr, iomsg=emsg)
 
@@ -169,9 +165,7 @@ SUBROUTINE read_data_file(file_name, path)
     !
     integer :: i, id, ntype
     real(dp) :: xlo, xhi, ylo, yhi, zlo, zhi
-    real(dp) :: tmp_x, tmp_y, tmp_z
     character(len=10), allocatable :: typechar(:)
-    character(len=10) :: tmptype
 
     open(unit=20, file=trim(path)//file_name, status='old', iostat=ierr, iomsg=emsg)
 
@@ -214,10 +208,6 @@ SUBROUTINE read_data_file(file_name, path)
     associate(xyz => coord_data%coord)
         do i = 1, natom
             read (20,*, iostat=ierr) id, typechar(i), xyz(i,1), xyz(i,2), xyz(i,3)
-!             typechar(id) = tmptype
-!             xyz(id,1) = tmp_x
-!             xyz(id,2) = tmp_y
-!             xyz(id,3) = tmp_z
         end do
     end associate
 

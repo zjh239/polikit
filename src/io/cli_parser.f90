@@ -66,24 +66,18 @@ contains
             flag_nfd = .true.
             flag_d2min = .true.
             call get_command_argument(i+1, args)
-            read (args, *) d2min_r
-            print *, info//' D2min cutoff value is:', d2min_r
+            read (args, *) d2min_r(1,1)
+            print *, info//' D2min cutoff value is:', d2min_r(1,1)
         case('-bad')
             flag_nfd = .true.
             flag_bad = .true.
-            call get_command_argument(i+1, args)
-            if (verify('-', args) /= 0) then
-                cutoffs = get_cutoff(args)
-                print *, info//' Cutoff values are:', cutoffs
-            end if
+            call get_command_argument(i+1, cutoff_str)
+            print *, info//' Cutoff values are:', cutoff_str
         case('-ring')
             flag_nf = .true.
             flag_rstat = .true.
-            call get_command_argument(i+1, args)
-            if (verify('-', args) /= 0) then
-                cutoffs = get_cutoff(args)
-                print *, info//' Cutoff values are:', cutoffs
-            end if
+            call get_command_argument(i+1, cutoff_str)
+            print *, info//' Cutoff values are:', cutoff_str
             call get_command_argument(i+2, args)
             read (args, *, iostat=k) max_ring_lim
             if (k /= 0) then
@@ -92,19 +86,13 @@ contains
         case('-tct')
             flag_nfd = .true.
             flag_tct = .true.
-            call get_command_argument(i+1, args)
-            if (verify('-', args) /= 0) then
-                cutoffs = get_cutoff(args)
-                print *, info//' Cutoff values are:', cutoffs
-            end if
+            call get_command_argument(i+1, cutoff_str)
+            print *, info//' Cutoff values are:', cutoff_str
         case('-poly')
             flag_nf = .true.
             flag_poly = .true.
-            call get_command_argument(i+1, args)
-            if (verify('-', args) /= 0) then
-                cutoffs = get_cutoff(args)
-                print *, info//' Cutoff values are:', cutoffs
-            end if
+            call get_command_argument(i+1, cutoff_str)
+            print *, info//' Cutoff values are:', cutoff_str
         case('-wa')
             flag_wa = .true.
             call get_command_argument(i+1, args)
@@ -113,18 +101,12 @@ contains
         case('-ha')
             flag_nf = .true.
             flag_ha = .true.
-            call get_command_argument(i+1, args)
-            if (verify('-', args) /= 0) then
-                cutoffs = get_cutoff(args)
-                print *, info//' Cutoff values are:', cutoffs
-            end if
+            call get_command_argument(i+1, cutoff_str)
+            print *, info//' Cutoff values are:', cutoff_str
         case('-cluster')
             flag_cluster = .true.
-            call get_command_argument(i+1, args)
-            if (verify('-', args) /= 0) then
-                cutoffs = get_cutoff(args)
-                print *, info//' Cutoff values are:', cutoffs
-            end if
+            call get_command_argument(i+1, cutoff_str)
+            print *, info//' Cutoff values are:', cutoff_str
         case('-lpse')
             flag_nfd = .true.
             flag_d2min = .true.
@@ -132,14 +114,11 @@ contains
             flag_lpse = .true.
 
             call get_command_argument(i+1, args)
-            read (args, *) d2min_r
-            print *, info//' D2min cutoff value is:', d2min_r
+            read (args, *) d2min_r(1,1)
+            print *, info//' D2min cutoff value is:', d2min_r(1,1)
 
-            call get_command_argument(i+2, args)
-            if (verify('-', args) /= 0) then
-                cutoffs = get_cutoff(args)
-                print *, info//' Cutoff values are:', cutoffs
-            end if
+            call get_command_argument(i+1, cutoff_str)
+            print *, info//' Cutoff values are:', cutoff_str
         case('-ci')
             flag_nfd = .true.
             flag_d2min = .true.
@@ -150,26 +129,17 @@ contains
             read (args, *) d2min_r
             print *, info//' D2min cutoff value is:', d2min_r
 
-            call get_command_argument(i+2, args)
-            if (verify('-', args) /= 0) then
-                cutoffs = get_cutoff(args)
-                print *, info//' Cutoff values are:', cutoffs
-            end if
+            call get_command_argument(i+1, cutoff_str)
+            print *, info//' Cutoff values are:', cutoff_str
         case('-nc')
             flag_nc=.true.
             flag_nf = .true.
-            call get_command_argument(i+1, args)
-            if (verify('-', args) /= 0) then
-                cutoffs = get_cutoff(args)
-                print *, info//' Cutoff values are:', cutoffs
-            end if
+            call get_command_argument(i+1, cutoff_str)
+            print *, info//' Cutoff values are:', cutoff_str
         case('-nf')
             flag_nf = .true.
-            call get_command_argument(i+1, args)
-            if (verify('-', args) /= 0) then
-                cutoffs = get_cutoff(args)
-                print *, info//' Cutoff values are:', cutoffs
-            end if
+            call get_command_argument(i+1, cutoff_str)
+            print *, info//' Cutoff values are:', cutoff_str
         case('-skip')
             call get_command_argument(i+1, args)
             read (args, *, iostat=k) skip_frame

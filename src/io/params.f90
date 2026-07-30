@@ -8,15 +8,16 @@ module params
     integer :: pbcs(3)
 
     character(len=20) :: coption, doption
-    character(len=20), allocatable :: fnames(:)
+    character(len=40), allocatable :: fnames(:)
     integer :: fnumber, frame_interval
     integer :: skip_frame = 0
-    character(len=30) :: cutoff_str, pbc_str
+    character(len=80) :: cutoff_str, pbc_str
     logical :: static
     ! dynamic params
-    real(dp), allocatable :: cutoffs(:)
+    real(dp), dimension(:,:), allocatable :: cutoffs
     ! analysis params
-    real(dp) :: rdf_r, d2min_r
+    real(dp) :: d2min_r(1,1)
+    real(dp) :: rdf_r
     integer :: max_ring_lim
 
 end module

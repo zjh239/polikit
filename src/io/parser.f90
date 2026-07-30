@@ -14,7 +14,7 @@ contains
 ! read file names in the directory and sort the files.
 SUBROUTINE read_file_names()
     IMPLICIT NONE
-    integer :: i,j,k,m, tmp
+    integer :: i, j, tmp
     integer, allocatable, dimension(:) :: t
     character(len=40) :: tmp_name
 
@@ -118,20 +118,23 @@ subroutine get_digits(filename, num)
 end subroutine get_digits
 
 ! Read pair-wise cutoffs.
-function get_cutoff(str_in) result(r_list)
+function get_cutoff(str_in, ntype) result(r_list)
     implicit none
     ! IN:
     character(len=*), intent(in) :: str_in
+    integer, intent(in) :: ntype
     ! PRIV:
     integer :: p, k, i, n
     ! out:
-    real(dp), allocatable :: r_list(:)
+    real(dp), allocatable :: r_list(:,:)
 
     if (allocated(r_list)) return
+!     if(verify('-', str_in) /= 0) stop error//' Cut-off string is in wrong format!'
 
     if (index(str_in, ",") == 0) then
-        allocate(r_list(1))
-        read(str_in, *) r_list(1)
+        allocate(r_list(1,1))
+        read(str_in, *) r_list(1,1)
+        return
     else
         n = 0
         do i = 1, len_trim(str_in)
@@ -139,17 +142,38 @@ function get_cutoff(str_in) result(r_list)
                 n=n + 1
             end if
         end do
-        allocate(r_list(n+1))
-        p = 1
-        k = 0
+        if (n+1 /= ntype*(ntype+1)/2) then
+            stop error//' Using pair-wise cut-offs, but incorrect number!'
+        end if
+
+        allocate(r_list(ntype, ntype))
+
         i = 1
-        do while(index(str_in(p:), ",") /= 0)
-            k = index(str_in(p:), ",") + k
-            read(str_in(p:k-1),*) r_list(i)
-            p = k+1
-            i = i+1
+        k = 0
+        do p = 1, ntype
+            do n = p, ntype
+                if (index(str_in(i:), ",") /= 0) then
+                    k = index(str_in(i:), ",") + k
+                    read(str_in(i:k-1),*) r_list(p,n)
+                    r_list(n,p) = r_list(p,n)
+                    print *, info//' Cutoff between pair ',p,' and ',n,' is ',r_list(p,n)
+                    i = k+1
+                end if
+            end do
         end do
-        read(str_in(p:),*) r_list(i)
+        read(str_in(i:),*) r_list(ntype, ntype)
+        print *, info//' Cutoff between pair ',ntype,' and ',ntype,' is ',r_list(ntype, ntype)
+        return
+!         p = 1
+!         k = 0
+!         i = 1
+!         do while(index(str_in(p:), ",") /= 0)
+!             k = index(str_in(p:), ",") + k
+!             read(str_in(p:k-1),*) r_list(i)
+!             p = k+1
+!             i = i+1
+!         end do
+!         read(str_in(p:),*) r_list(i)
     end if
 end function get_cutoff
 
@@ -212,20 +236,20 @@ END SUBROUTINE
 
 SUBROUTINE version_msg()
 
-    print *, info//" Polikit - Atomistic Simulation Analysis Tool"
-    print *, info//"    V0.4"
-    print *, info//" Bug report: zhgjiahui@gmail.com"
+    print *, other//" Polikit - Atomistic Simulation Analysis Tool"
+    print *, other//"    V0.4"
+    print *, other//" Bug report: zhgjiahui@gmail.com"
 
 END SUBROUTINE
 
 subroutine cite_msg()
 
-    print *, warn//"    Please kindly cite:"
-    print *, warn//"---"
-    print *, warn//" Room temperature plasticity in amorphous SiO2 and amorphous Al2O3 : A &
+    print *, other//" Please kindly cite:"
+    print *, other//"---"
+    print *, other//" Room temperature plasticity in amorphous SiO2 and amorphous Al2O3 : A &
     computational and topological study. Zhang, J., Frankberg, E. J., Kalikka, J. &
     Kuronen, A. Acta Mater. 259, (2023) 119223. https://doi.org/10.1016/j.actamat.2023.119223"
-    print *, warn//"---"
+    print *, other//"---"
 
 end subroutine cite_msg
 
