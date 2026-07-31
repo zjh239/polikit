@@ -17,6 +17,7 @@ module init
     use ha
     use d2min
     use cluster
+    use qn
     implicit none
 
 contains
@@ -35,18 +36,18 @@ subroutine static_analysis(cur_frame)
 
     if (flag_nf)  call find_neighbors(cutoffs, .false.) ! if (flag_nf)  call neighbor_finder_old
     if (flag_nfd .and. .not. flag_d2min) call find_neighbors(cutoffs, .true.)
-    if (flag_nfd .and. flag_d2min) call find_neighbors(d2min_r, .true.)
+    if (flag_qn) call qn_analysis()
     if (flag_rdf) call calculate_rdf()
     if (flag_wa) call wa_parameter()
     if (flag_poly) call poly_neighbor()
     if (flag_bad) call bond_angle()
     if (flag_rstat) call rsa_simple(max_ring_lim)
     if (flag_ha) call calculate_ha()
+    if (flag_nfd .and. flag_d2min) call find_neighbors(d2min_r, .true.)
 
     if (flag_tct) then
         stop error//" TCT analysis can not be static."
     end if
-!     call calculate_qn()
 
 end subroutine static_analysis
 
@@ -98,7 +99,7 @@ subroutine init_msg()
     print *,  other//" Room temperature plasticity in amorphous SiO2 and amorphous Al2O3 : A &
     computational and topological study. Zhang, J., Frankberg, E. J., Kalikka, J. &
     Kuronen, A. Acta Mater. 259, (2023) 119223. https://doi.org/10.1016/j.actamat.2023.119223"
-    print *,  warn//"---"
+    print *,  other//"---"
 
 end subroutine
 

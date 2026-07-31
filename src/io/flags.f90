@@ -12,6 +12,7 @@ module flags
     logical :: flag_rdf = .false.   ! radial distribution function.
     logical :: flag_wa = .false.    ! Wendt-Abraham parameter from RDF.
     logical :: flag_ha = .false.    ! Honeycutt-Anderson parameters.
+    logical :: flag_qn = .false.    ! Q_n analysis of the oxygen.
 
     ! dynamic analysis flags
     logical :: flag_d2min = .false.

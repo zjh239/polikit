@@ -18,9 +18,11 @@ MODULE data_input
         real(dp), dimension(atom_number, 3) :: coord = 0.0
     end type
 
-    integer(inp) :: natom, o_type
+    integer :: natom, o_type
     integer :: ntype    ! Number of types
     real(dp), dimension(:), allocatable :: atom_frac
+
+    character(len = 2), dimension(:), allocatable :: type_name
 
     type(coordinates(atom_number = :)), allocatable :: coord_data
 contains
@@ -32,8 +34,6 @@ SUBROUTINE get_data_from_file(file_name, path)
     character(len=*), intent(in)::file_name
     character(len=*), intent(in)::path
     !
-
-
 !     print *, 'Reading xyz from file named ', file_name ! trim(dpath)//fname
 !     slength = len(trim(fname))
 
@@ -222,34 +222,45 @@ SUBROUTINE type_convert(charin)
     IMPLICIT NONE
 
     character(len=10), intent(in) :: charin(natom)
-    character(len=10) :: typename(10)
+    character(len=2), allocatable :: tmp(:)
     integer :: i, j
 
     integer :: tmp_number
 
 !     allocate(ptype(natom), STAT=ierr, ERRMSG=emsg)
+    if (.not. allocated(type_name)) allocate(type_name(1))
 
     associate(ptype => coord_data%ptype)
         ptype = 0
         ntype = 1
-        typename(1) = charin(1)
+        type_name(1) = charin(1)
 
         do i = 1, natom     !compare char type with each existing type, add it to typename if not exist
             do j = 1, ntype
-                if(charin(i) == typename(j)) then
+                if(charin(i) == type_name(j)) then
                     ptype(i) = j
                     exit
                 else if(j==ntype) then
                     ntype = ntype + 1
-                    typename(ntype) = charin(i)
+
+                    allocate(tmp(ntype))
+                    tmp(:ntype-1) = type_name
+                    deallocate(type_name)
+                    tmp(ntype) = charin(i)
+                    call move_alloc(tmp, type_name)
+
                     ptype(i) = ntype
                 end if
             end do
-
+! ! Expand the path list for new path
+! allocate(tmp(size(pathArray(:,1))+1, size(pathArray(1,:))))
+! tmp(:size(pathArray(:,1)),:) = pathArray
+! deallocate(pathArray)  ! deallocated?
+! call move_alloc(tmp, pathArray)
         end do
-        print *, " ### Atom Type Number"
-        print *, "****************************"
-        print *, "Typename    Typeid    Number"
+        print *, " - Atom type and number -"
+        print *, "- - - - - - - - - - - - - - - - -"
+        print *, "Type name  |  Type id  |  Number"
 
         o_type = 1
         if (.not. allocated(atom_frac)) allocate(atom_frac(ntype))
@@ -260,10 +271,10 @@ SUBROUTINE type_convert(charin)
             if (tmp_number > count(ptype==o_type)) then
                 o_type = i
             end if
-            print "('   ', a, i0, '         ', i0)", typename(i), i, tmp_number
+            print "('   ', a,'   |   ', i0, '    |    ', i0)", type_name(i), i, tmp_number
         end do
-        print *, "****************************"
-        print *, 'Oxygen type is: ', o_type !, atom_frac
+        print *, "- - - - - - - - - - - - - - - - -"
+        print *, info//' Auto detected oxygen type as: ', o_type !, atom_frac
     end associate
 
 END SUBROUTINE
@@ -283,7 +294,7 @@ subroutine clean_xyz_data
         coord_data%ptype = 0
         coord_data%coord = 0.0
     end if
-
+    if (allocated(type_name)) deallocate(type_name)
 end subroutine
 
 END MODULE data_input

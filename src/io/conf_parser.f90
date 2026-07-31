@@ -85,6 +85,7 @@ subroutine from_config(conf_file)
     end if
   end if
 
+  call get_value(anal_table, "qn",    flag_qn,    .false.)
   call get_value(anal_table, "nfd",   flag_nfd,   .false.)
   call get_value(anal_table, "poly",  flag_poly,  .false.)
   call get_value(anal_table, "bad",   flag_bad,   .false.)

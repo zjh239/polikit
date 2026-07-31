@@ -276,8 +276,7 @@ subroutine test_run()
 
 end subroutine test_run
 
-subroutine mem_clean
-    implicit none
+subroutine mem_clean()
 
     if (flag_nf .or. flag_nfd)    call clean_neighbor()
 
@@ -287,6 +286,7 @@ subroutine mem_clean
 
     if (flag_poly) call clean_poly()
     if (flag_cluster) call clean_cluster()
+    if (flag_qn) call clean_qn()
 
     call clean_xyz_data()
 

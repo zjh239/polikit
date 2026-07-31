@@ -139,7 +139,7 @@ subroutine calculate_qn()
     qn = 0
 
     do i = 1, natom
-        if (coord_data%ptype(i) == o_type) continue
+        if (coord_data%ptype(i) == o_type) cycle
         do j = 1, neigh_list%n_neighbor(i)
             id  = neigh_list%neighbors(i,j)
             if (neigh_list%n_neighbor(id) == 2 .and. coord_data%ptype(id) == o_type) then

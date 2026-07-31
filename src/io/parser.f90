@@ -128,8 +128,9 @@ function get_cutoff(str_in, ntype) result(r_list)
     ! out:
     real(dp), allocatable :: r_list(:,:)
 
+    if (index(str_in, achar(0)) > 0) stop error//' Cutoff not provided, quit.'
+
     if (allocated(r_list)) return
-!     if(verify('-', str_in) /= 0) stop error//' Cut-off string is in wrong format!'
 
     if (index(str_in, ",") == 0) then
         allocate(r_list(1,1))

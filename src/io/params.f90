@@ -5,19 +5,20 @@ module params
   implicit none
     ! basic params
     character(len=80) :: path, file_name, conf_file   ! path that contain files, or file names
-    integer :: pbcs(3)
-
     character(len=20) :: coption, doption
     character(len=40), allocatable :: fnames(:)
+    logical :: static = .true.
+
+    ! dynamic params
     integer :: fnumber, frame_interval
     integer :: skip_frame = 0
-    character(len=80) :: cutoff_str, pbc_str
-    logical :: static
-    ! dynamic params
-    real(dp), dimension(:,:), allocatable :: cutoffs
+
     ! analysis params
+    character(len=80) :: cutoff_str, pbc_str
     real(dp) :: d2min_r(1,1)
     real(dp) :: rdf_r
     integer :: max_ring_lim
-
+    integer :: pbcs(3)
+    real(dp), dimension(:,:), allocatable :: cutoffs
+    integer :: ox_type_set
 end module

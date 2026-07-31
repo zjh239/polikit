@@ -4,7 +4,7 @@ module neighbor_finder
   use data_types
   use stdlib_array
   use parser, only: pbcs
-  use data_input, only: coord_data, natom, ntype
+  use data_input, only: coord_data, natom, ntype, type_name
   use logger
 
   implicit none
@@ -28,7 +28,7 @@ module neighbor_finder
 
   type(neighbor_list(atom_number = :, capacity = :)), allocatable :: neigh_list
 
-  integer, dimension(:,:), allocatable :: n_by_type
+  integer, dimension(:,:), allocatable :: cn_by_type
 
   integer, save :: n_cap
 
@@ -53,7 +53,7 @@ SUBROUTINE create_bins(rCut, cells_n, cells_xpbc, cells_ypbc, cells_zpbc, cells_
 
 198 bincap = bin_size_factor*(rCut**3)
 199 format (' ',a,' ', i0,a)
-  print 199, info,bincap," is the bin capacity;"
+  print 199, info, bincap," is the bin capacity;"
 
   associate(xyz0 => coord_data%coord, lx => coord_data%lx, ly => coord_data%ly, lz => coord_data%lz)
 
@@ -181,14 +181,15 @@ SUBROUTINE find_neighbors(cutoffs, cal_delta)
 
   if (size(cutoffs(1,:)) == 1) then
     not_multi_r = .true.
-  end if
-
-  do p = 1, ntype
-    do q = p, ntype
-      r_square(p,q) = cutoffs(p,q)**2
-      r_square(q,p) = r_square(p,q)
+    r_square = cutoffs(1,1)**2
+  else
+    do p = 1, ntype
+      do q = p, ntype
+        r_square(p,q) = cutoffs(p,q)**2
+        r_square(q,p) = r_square(p,q)
+      end do
     end do
-  end do
+  end if
 
   n_cap = 2*maxval(cutoffs)**3
   print *, info//' Capacity of neighbor list is set to: ', n_cap
@@ -204,8 +205,8 @@ SUBROUTINE find_neighbors(cutoffs, cal_delta)
     print '(a,i0,a)', ' '//info//' Constructing delta array, memory cost: ', sizeof(delta)/1024, ' KB;'
   end if
 
-  if (.not. allocated(n_by_type)) allocate(n_by_type(natom, ntype))
-  n_by_type = 0
+  if (.not. allocated(cn_by_type)) allocate(cn_by_type(natom, ntype))
+  cn_by_type = 0
 
   d = maxval(cutoffs(:,:))
   call create_bins(d, cells_n, cells_xpbc, cells_ypbc, cells_zpbc, cells_ids, xbin_max, ybin_max, zbin_max)
@@ -220,8 +221,6 @@ SUBROUTINE find_neighbors(cutoffs, cal_delta)
       do atom = 1, cells_n(xbin, ybin, zbin)
         id = cells_ids(xbin, ybin, zbin, atom)
         type1 = coord_data%ptype(id)
-
-!         print *, id, xbin, ybin, zbin, xyz(id,1), xyz(id,2), xyz(id,3)
 
         do p = -1, 1
         do q = -1, 1
@@ -258,8 +257,8 @@ SUBROUTINE find_neighbors(cutoffs, cal_delta)
                 n_neighbor(id) = n_neighbor(id) + 1
                 neighbor(id, n_neighbor(id)) = checkid
 
-                n_by_type(id, coord_data%ptype(checkid)) = n_by_type(id, coord_data%ptype(checkid))+1
-                n_by_type(checkid, coord_data%ptype(id)) = n_by_type(checkid, coord_data%ptype(id))+1
+                cn_by_type(id, coord_data%ptype(checkid)) = cn_by_type(id, coord_data%ptype(checkid))+1
+                cn_by_type(checkid, coord_data%ptype(id)) = cn_by_type(checkid, coord_data%ptype(id))+1
 
                 if (cal_delta) then
                   delta(id,n_neighbor(id),1) = x_tmp - xyz(id,1)
@@ -351,8 +350,8 @@ end subroutine sort_neighbor
 !     print '(a,i0,a)', ' '//info//' Constructing delta array, memory cost: ', sizeof(delta)/1024, ' KB;'
 !   end if
 !
-!   if (.not. allocated(n_by_type)) allocate(n_by_type(natom, ntype))
-!   n_by_type = 0
+!   if (.not. allocated(cn_by_type)) allocate(cn_by_type(natom, ntype))
+!   cn_by_type = 0
 !
 !   d = maxval(r(:,:))
 !   r = r**2
@@ -400,8 +399,8 @@ end subroutine sort_neighbor
 !                 neighbor(checkid, n_neighbor(checkid)) = id
 !                 neighbor(id, n_neighbor(id)) = checkid
 !
-!                 n_by_type(id, coord_data%ptype(checkid)) = n_by_type(id, coord_data%ptype(checkid))+1
-!                 n_by_type(checkid, coord_data%ptype(id)) = n_by_type(checkid, coord_data%ptype(id))+1
+!                 cn_by_type(id, coord_data%ptype(checkid)) = cn_by_type(id, coord_data%ptype(checkid))+1
+!                 cn_by_type(checkid, coord_data%ptype(id)) = cn_by_type(checkid, coord_data%ptype(id))+1
 !
 !                 delta(id,n_neighbor(id),1) = x_tmp - xyz(id,1)
 !                 delta(id,n_neighbor(id),2) = y_tmp - xyz(id,2)
@@ -441,20 +440,25 @@ end subroutine sort_neighbor
 subroutine print_cn()
   implicit none
   integer :: i, j
-  character(len=13) :: title
 
-  print *, info//' ### Coordination Distribution'
-  print *, info//'***************************'
+  print *, info//' - Coordination distribution -'
+  print *, info//' - - - - - - - - - - - - - - - - - - - - - -'
 
-  call print_hist(neigh_list%n_neighbor,'c| Count | ')
+  call print_hist(neigh_list%n_neighbor,'c|  Total   | ')
+  print *, info//' - - - - - - - By type - - - - - - - - - -'
+
+  do j = 1, ntype
+    call print_hist(neigh_list%n_neighbor(trueloc(coord_data%ptype==j)) , ' |    '//type_name(j)//'    | ')
+  end do
+  print *, info//' - - - - - - - By pair - - - - - - - - - - -'
 
   do j = 1, ntype
     do i = 1, ntype
-      write (title, "(A4,I1,A1,I1,A4)") ' |  ',j,'-',i,'  | '
-      call print_hist(n_by_type(trueloc(coord_data%ptype==j),i) , title)
+!       write (title, "(A4,I1,A1,I1,A3)") ' |  ',j,'-',i,'  |'
+      call print_hist(cn_by_type(trueloc(coord_data%ptype==j),i) , ' | '//type_name(j)//' <- '//type_name(i)//' | ')
     end do
   end do
-  print *, info//'***************************'
+  print *, info//' - - - - - - - - - - - - - - - - - - - - - -'
 
 end subroutine print_cn
 
@@ -478,10 +482,10 @@ subroutine print_hist(alist, title)
       amount(i) = count(alist == i)
     end do
 
-    if (verify('Count',title)==0) print 117, ' | CN    | ',rank
-    print 117, title,amount
+    if (verify('Total', title)==0) print 117, ' |    CN    | ',rank
+    print 117, title, amount
 
-    117 format (a11,*(i8, ' | '))
+    117 format (a, *(i8, ' | '))
 
 end subroutine print_hist
 
@@ -494,7 +498,7 @@ end subroutine print_hist
     end if
 
     if (allocated(delta)) delta = 0.
-    if (allocated(n_by_type)) n_by_type = 0.
+    if (allocated(cn_by_type)) cn_by_type = 0.
 
   end subroutine clean_neighbor
 

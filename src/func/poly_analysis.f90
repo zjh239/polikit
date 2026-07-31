@@ -341,7 +341,7 @@ end subroutine ln_change
 !             poly_n => polys%poly_neigh_number, poly_list => polys%poly_list)
 !
 !     do i = 1, natom
-!         if (ln(i) /= 1) continue
+!         if (ln(i) /= 1) cycle
 !         do j = 1, poly_n(i)
 !             id  = poly_list(i,j)
 !             if (ln(id) == 1 .and. coord_data%ptype(id) == o_type) then
