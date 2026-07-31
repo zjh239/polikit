@@ -2,7 +2,7 @@
 module bad  ! bond angle distribution
     use precision
     use neighbor_finder, only: neigh_list, delta
-    use data_input, only: coord_data, natom, o_type, ntype
+    use data_input, only: coord_data, natom, o_type, ntype, type_name
     contains
 
 subroutine bond_angle()
@@ -102,13 +102,13 @@ subroutine hist_of_bad(array, type_array)
   end do
 
   ! Construct header line.
-  head = 'b2| theta     sum    '
+  head = 'b2| theta  |  sum '
 
   do i = 1, ntype
       do t1=1, ntype
       do k = i, ntype
           write (str, '(i0,"-",i0,"-",i0)') i,t1,k
-          head  = head//str
+          head  = head//' | '//type_name(i)//'-'//type_name(t1)//'-'//type_name(k)
       end do
       end do
   end do
@@ -143,13 +143,13 @@ subroutine hist_of_bad(array, type_array)
      bad_data(k,:) = pack(raw_data(k,:,:,:), mask)
   end forall
 
-  print *, 'b1| ============================================'
+  print *, 'b1| = = = = = = = = = = = = = = = = = = = ='
   print *, head
   do i = 1,180
     print "(f8.3, *(i8))", bin_center, sum(bad_data(i,:)), bad_data(i, :)
     bin_center = bin_center + 1.0
   end do
-  print *, '================================================'
+  print *, '= = = = = = = = = = = = = = = = = = = = = ='
 
 end subroutine hist_of_bad
 

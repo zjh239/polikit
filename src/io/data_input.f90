@@ -52,7 +52,7 @@ SUBROUTINE get_data_from_file(file_name, path)
         stop
     end if
     
-    cutoffs = get_cutoff(cutoff_str, ntype)
+    cutoffs = get_cutoff(cutoff_str, type_name)
 
     print *, info//' Leaving get xyz subroutine ...'
 END SUBROUTINE

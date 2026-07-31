@@ -118,18 +118,20 @@ subroutine get_digits(filename, num)
 end subroutine get_digits
 
 ! Read pair-wise cutoffs.
-function get_cutoff(str_in, ntype) result(r_list)
+function get_cutoff(str_in, type_name) result(r_list)
     implicit none
     ! IN:
     character(len=*), intent(in) :: str_in
-    integer, intent(in) :: ntype
+    character(len=2), intent(in) :: type_name(:)
     ! PRIV:
     integer :: p, k, i, n
+    integer :: ntype
     ! out:
     real(dp), allocatable :: r_list(:,:)
 
     if (index(str_in, achar(0)) > 0) stop error//' Cutoff not provided, quit.'
 
+    ntype = size(type_name)
     if (allocated(r_list)) return
 
     if (index(str_in, ",") == 0) then
@@ -157,24 +159,15 @@ function get_cutoff(str_in, ntype) result(r_list)
                     k = index(str_in(i:), ",") + k
                     read(str_in(i:k-1),*) r_list(p,n)
                     r_list(n,p) = r_list(p,n)
-                    print *, info//' Cutoff between pair ',p,' and ',n,' is ',r_list(p,n)
+                    print *, info//' Cutoff between pair '//type_name(p)//' and '//type_name(n)//' is ',r_list(p,n)
                     i = k+1
                 end if
             end do
         end do
         read(str_in(i:),*) r_list(ntype, ntype)
-        print *, info//' Cutoff between pair ',ntype,' and ',ntype,' is ',r_list(ntype, ntype)
+        print *, info//' Cutoff between pair '//type_name(ntype)//' and '//type_name(ntype)//' is ',r_list(ntype, ntype)
         return
-!         p = 1
-!         k = 0
-!         i = 1
-!         do while(index(str_in(p:), ",") /= 0)
-!             k = index(str_in(p:), ",") + k
-!             read(str_in(p:k-1),*) r_list(i)
-!             p = k+1
-!             i = i+1
-!         end do
-!         read(str_in(p:),*) r_list(i)
+
     end if
 end function get_cutoff
 
