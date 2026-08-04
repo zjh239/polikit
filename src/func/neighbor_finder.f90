@@ -12,8 +12,8 @@ module neighbor_finder
   ! neighbor list
   type neighbor_list(atom_number, capacity)
       integer, len :: atom_number, capacity
-      integer, dimension(atom_number) :: n_neighbor = 0
-      integer, dimension(atom_number, capacity) :: neighbors = 0
+      integer, dimension(atom_number) :: n_neighbor
+      integer, dimension(atom_number, capacity) :: neighbors
   end type
 
   ! bin type define, abolished due to stability issue.
@@ -21,7 +21,7 @@ module neighbor_finder
       integer, len :: capacity   !capacity of the bin
       integer :: n = 0
       integer :: x_pbc = 0, y_pbc = 0, z_pbc = 0
-      integer, dimension(capacity) :: ids = 0  !id of the atoms in bin
+      integer, dimension(capacity) :: ids  !id of the atoms in bin
   end type
 
   real(dp), save, allocatable :: delta(:,:,:)
