@@ -1,0 +1,108 @@
+name: CMake on multiple platforms
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: false
+
+      matrix:
+        include:
+          - os: ubuntu-latest
+            build_type: Release
+
+          - os: windows-latest
+            build_type: Release
+
+          - os: macos-latest
+            build_type: Release
+
+    steps:
+      - uses: actions/checkout@v4
+
+      ###########################################################
+      # Install gfortran
+      ###########################################################
+
+      - name: Install gfortran (Ubuntu)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gfortran
+
+      - name: Install gfortran (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew install gcc
+
+      - name: Install MSYS2 (Windows)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: >-
+            mingw-w64-x86_64-gcc-fortran
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+
+      ###########################################################
+      # Configure
+      ###########################################################
+
+      - name: Configure CMake (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          cmake \
+            -S . \
+            -B build \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_Fortran_COMPILER=gfortran
+
+      - name: Configure CMake (Windows)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: |
+          cmake \
+            -S . \
+            -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DCMAKE_Fortran_COMPILER=gfortran
+
+      ###########################################################
+      # Build
+      ###########################################################
+
+      - name: Build (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          cmake --build build --config ${{ matrix.build_type }}
+
+      - name: Build (Windows)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: |
+          cmake --build build
+
+      ###########################################################
+      # Test
+      ###########################################################
+
+      - name: Test (Linux/macOS)
+        if: runner.os != 'Windows'
+        working-directory: build
+        run: |
+          ctest --output-on-failure
+
+      - name: Test (Windows)
+        if: runner.os == 'Windows'
+        working-directory: build
+        shell: msys2 {0}
+        run: |
+          ctest --output-on-failure
