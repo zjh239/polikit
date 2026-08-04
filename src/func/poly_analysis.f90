@@ -15,10 +15,10 @@ module poly_analysis
   type polyhedron(atom_number, capacity)
       integer, len :: atom_number, capacity
 !       integer, dimension(atom_number) :: center_type = 0
-      integer, dimension(atom_number) :: topo_type = 0  ! 1: corner; 2: edge; 3: face
-      integer, dimension(atom_number) :: poly_neigh_number = 0
-      integer, dimension(atom_number, capacity) :: poly_list = 0  ! polyhedral neighbor list
-      integer, dimension(atom_number, capacity) :: topo_list = 0  ! topological type with each of its neighbor
+      integer, dimension(atom_number) :: topo_type  ! 1: corner; 2: edge; 3: face
+      integer, dimension(atom_number) :: poly_neigh_number
+      integer, dimension(atom_number, capacity) :: poly_list  ! polyhedral neighbor list
+      integer, dimension(atom_number, capacity) :: topo_list  ! topological type with each of its neighbor
   end type
 
   type(polyhedron(atom_number = :, capacity = :)), allocatable :: polys
@@ -52,6 +52,7 @@ SUBROUTINE poly_neighbor()
   ln = 0
   poly_n = 0
   poly_list = 0
+  topo_list = 0
 
   do id = 1, natom
 

@@ -14,8 +14,8 @@ MODULE data_input
         integer, len :: atom_number
         real(dp) :: lx = 0.0, ly = 0.0, lz = 0.0
         real(dp) :: xmin = 0.0, ymin = 0.0, zmin = 0.0
-        integer, dimension(atom_number) :: ptype = 0
-        real(dp), dimension(atom_number, 3) :: coord = 0.0
+        integer, dimension(atom_number) :: ptype
+        real(dp), dimension(atom_number, 3) :: coord
     end type
 
     integer :: natom, o_type
@@ -77,7 +77,12 @@ SUBROUTINE read_xyz_file(file_name, path)
     print *, info, natom," atoms read from ", trim(file_name)
     read (20,*, iostat=ierr)
 
-    if (.not. allocated(coord_data)) allocate(coordinates(natom) :: coord_data)
+    if (.not. allocated(coord_data)) then
+        allocate(coordinates(natom) :: coord_data)
+        coord_data%ptype = 0
+        coord_data%coord = 0.0
+    end if
+
     allocate(typechar(natom), STAT=ierr, ERRMSG=emsg)
 
     associate(xyz => coord_data%coord, lx => coord_data%lx, ly => coord_data%ly, lz => coord_data%lz)
