@@ -44,14 +44,14 @@ program main
         call static_analysis(0)
 
         call cpu_time(finish)
-        print '(a,f7.2,a)', ' '//warn//" Wall time = ",(finish-start)/omp_get_max_threads()," seconds."
+        print '(a,f7.2,a)', ' '//warn//" Wall time = ",(finish-start)," seconds."
     else
         if (frame_interval == 0) stop error//' Frame interval missing for dynamic analysis!'
         call dynamic()
 
         call cpu_time(finish)
         if (finish-start>0.01) &
-        print '(a,f7.2,a)', ' '//warn//" Wall time = ",(finish-start)/omp_get_max_threads()," seconds."
+        print '(a,f7.2,a)', ' '//warn//" Wall time = ",(finish-start)," seconds."
 !         print *,
 !         print *, (interval < 0), (flag_nc .eqv. .true.)
 !         stop error//' Dynamic analysis report error'
