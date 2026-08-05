@@ -93,6 +93,13 @@ jobs:
       ###########################################################
       # Test
       ###########################################################
+      - name: Upload binary
+        uses: actions/upload-artifact@v4
+        with:
+          name: polikit-${{ runner.os }}
+          path: |
+            build/polikit
+            build/polikit.exe
 
       - name: Test (Linux/macOS)
         if: runner.os != 'Windows'
