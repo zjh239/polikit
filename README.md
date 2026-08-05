@@ -2,6 +2,8 @@
 [![GitHub](https://img.shields.io/badge/GitHub-V0.4-C71D23?logo=github&logoColor=white&labelColor=000)](https://github.com/jiahuuui/polikit/)
 [![Bitbucket](https://img.shields.io/badge/Bitbucket-V0.4-0052CC?logo=bitbucket&logoColor=white&labelColor=000)](https://bitbucket.org/jiahuijiahui/polikit/src/master/)
 
+[![CMake on multiple platforms](https://github.com/zjh239/polikit/actions/workflows/cmake-multi-platform.yml/badge.svg?branch=main)](https://github.com/zjh239/polikit/actions/workflows/cmake-multi-platform.yml)
+
 ## A polyhedral analysis toolkit
 
 This package is originally developed for polyhedral analysis of amorphous structures. Now it has modules for other analysis methods, including bond angle analysis, RDF analysis, TCT analysis and ring statistics analysis. For now, file formats including xyz, lammps data file, lammps dump file can be read, but please carefully check the format when using the package. Analysis can be performed in either static or dynamic way, depends on whether the analysis only involves one file, or also comparison with other files.
