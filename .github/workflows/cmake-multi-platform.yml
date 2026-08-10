@@ -89,10 +89,20 @@ jobs:
         shell: msys2 {0}
         run: |
           cmake --build build
-
+  ###########################################################
+  # Collect Windows runtime DLLs
+    
+      - name: Collect Windows runtime DLLs
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: |
+          cp /mingw64/bin/libgfortran-*.dll build/
+          cp /mingw64/bin/libgcc_s_seh-1.dll build/
+          cp /mingw64/bin/libwinpthread-1.dll build/
+    
       ###########################################################
-      # Test
-      ###########################################################
+      # Upload binary
+    
       - name: Upload binary
         uses: actions/upload-artifact@v4
         with:
@@ -100,6 +110,7 @@ jobs:
           path: |
             build/polikit
             build/polikit.exe
+            build/*.dll
 
       - name: Test (Linux/macOS)
         if: runner.os != 'Windows'
