@@ -23,11 +23,52 @@ program main
     implicit none
 
     real :: start, finish
-    call logger_init()
-    call cpu_time(start)
+
 ! put test code here
 !     call t1()
 
+    integer :: A(3,3,3), B(18)
+    logical :: mask(3,3,3)
+
+    A = reshape([1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27], [3,3,3])
+    print *, A
+
+    mask(1,1,1) = .true.
+    mask(2,1,1) = .false.
+    mask(3,1,1) = .false.
+    mask(1,2,1) = .true.
+    mask(2,2,1) = .false.
+    mask(3,2,1) = .false.
+    mask(1,3,1) = .true.
+    mask(2,3,1) = .false.
+    mask(3,3,1) = .false.
+
+    mask(1,1,2) = .true.
+    mask(2,1,2) = .true.
+    mask(3,1,2) = .false.
+    mask(1,2,2) = .true.
+    mask(2,2,2) = .true.
+    mask(3,2,2) = .false.
+    mask(1,3,2) = .true.
+    mask(2,3,2) = .true.
+    mask(3,3,2) = .false.
+
+    mask(1,1,3) = .true.
+    mask(2,1,3) = .true.
+    mask(3,1,3) = .true.
+    mask(1,2,3) = .true.
+    mask(2,2,3) = .true.
+    mask(3,2,3) = .true.
+    mask(1,3,3) = .true.
+    mask(2,3,3) = .true.
+    mask(3,3,3) = .true.
+
+    B = pack(A, mask)
+
+    print *, B
+
+    call logger_init()
+    call cpu_time(start)
 !
     call initialize()
 !     call init_msg()

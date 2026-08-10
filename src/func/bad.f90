@@ -41,8 +41,8 @@ subroutine bond_angle()
           +delta(id,j,3)*delta(id,k,3))/(norm2(delta(id,j,:))*norm2(delta(id,k,:))))
 
           bad_angle(bad_id) = angle
-          type_array(bad_id, 1)=ptype(id)
-          type_array(bad_id, 2)=ptype(neigh_1)
+          type_array(bad_id, 1)=ptype(neigh_1)
+          type_array(bad_id, 2)=ptype(id)
           type_array(bad_id, 3)=ptype(neigh_2)
 
           bad_id = bad_id + 1
@@ -81,7 +81,7 @@ subroutine hist_of_bad(array, type_array)
   real(dp), intent(inout) :: array(:)
   integer, intent(inout) :: type_array(:,:)
   !
-  integer :: cap, i, k, t1, t2, t3, n
+  integer :: cap, i, k, t1, t2, t3, n, c, b1, b2
   integer, allocatable :: raw_data(:,:,:,:), bad_data(:,:)
   logical :: mask(ntype, ntype, ntype)
   real(dp) :: binedge, bin_center
@@ -93,23 +93,24 @@ subroutine hist_of_bad(array, type_array)
   allocate(bad_data(180, n))
 
   ! Build upper triangle mask.
-  do i = 1, ntype
-     do k = 1, ntype
-     do t1 = 1, ntype
-        mask(i,t1,k) = (i <= k)
-     end do
-     end do
+  do b1 = 1, ntype
+    do c = 1, ntype
+      do b2 = 1, ntype
+        mask(b1,c,b2) = (b1 <= b2)
+      end do
+    end do
   end do
+  print *, mask
 
   ! Construct header line.
   head = 'b2| theta  |  sum '
 
-  do i = 1, ntype
-      do t1=1, ntype
-      do k = i, ntype
-          write (str, '(i0,"-",i0,"-",i0)') i,t1,k
-          head  = head//' | '//type_name(i)//'-'//type_name(t1)//'-'//type_name(k)
-      end do
+  do b1 = 1, ntype
+      do c=1, ntype
+        do b2 = 1, b1
+            write (str, '(i0,"-",i0,"-",i0)') b2,c,b1
+            head  = head//' | '//type_name(b2)//'-'//type_name(c)//'-'//type_name(b1)
+        end do
       end do
   end do
 
@@ -123,13 +124,13 @@ subroutine hist_of_bad(array, type_array)
   k = 1
   i = 1
   do while(i <= cap)
-    t1=type_array(i,1)
-    t2=type_array(i,2)
-    t3=type_array(i,3)
+    b1=type_array(i,1)
+    c =type_array(i,2)
+    b2=type_array(i,3)
 
     if (array(i) < binedge) then
-      raw_data(k,t1,t2,t3) = raw_data(k,t1,t2,t3)+1
-      raw_data(k,t3,t2,t1) = raw_data(k,t3,t2,t1)+1
+      raw_data(k,b1,c,b2) = raw_data(k,b1,c,b2)+1
+      raw_data(k,b2,c,b1) = raw_data(k,b2,c,b1)+1
     else
       k = k+1
       binedge = binedge + 1.0
