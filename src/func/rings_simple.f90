@@ -58,7 +58,7 @@ SUBROUTINE rsa_simple(maxlvl)     ! Ring statistics analysis simple
     path_list_size = 0
 
     DO atom = 1, natom
-        print *, atom
+!         print *, atom
         CALL create_path_list(atom, maxlvl, pathArray)
 
         CALL find_rings(pathArray, ringList)
