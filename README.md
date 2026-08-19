@@ -32,13 +32,30 @@ Please contact **zhgjiahui@gmail.com** if you have bugs or issues to report.
  - Polyhedral analysis.
 
 ## How to compile
-At the root directory of the code:
+
+### MacOS
+
+For MacOS, please first make sure that `gfortran` has been installed. Just run
+```bash
+brew install gcc
+```
+so that the install/upgrade will be performed. Then follow the steps for Linux.
+
+### Linux
+
+At the directory of the code:
 
 1. `mkdir build && cd build`
 
-2. `cmake ../.` or `cmake -DDEBUG=yes ../.` for debug mode.
+2. `cmake ../.`
 
-3. `make` or `make -j`
+3. `cmake build`
+
+For debug mode, replace step 2 as `cmake -D CMAKE_BUILD_TYPE=debug ../.`
+
+### Windows
+
+For Windows users, the binary and dependencies are packaged and can be downloaded directly.
 
 ## What Polikit can do
 
@@ -48,13 +65,15 @@ At the root directory of the code:
 
 2. Bond angle distribution
 
-3. Coordination distribution/change
+3. Coordination analysis (Total, element-wise, pair-wise)
 
-4. Rings statistics distribution
+4. Rings statistics distribution (Primary ring criteria)
 
 5. Radial distribution function
 
 7. Cluster analysis
+
+8. Q_n analysis
 
 ### Analysis of a series of configurations:
 
@@ -62,7 +81,7 @@ At the root directory of the code:
 
 2. Localized plastic events analysis (LPSE)
 
-3. Cluster inheritence analysis
+3. Cluster inherit analysis
 
 4. Topological constraint analysis
 
@@ -71,6 +90,7 @@ At the root directory of the code:
 6. Polyhedral neighbor change analysis
 
 ## Usage
+
 For static analysis(`-f`):
 
 **`./polikit -f abc.xyz -p 1 -poly 2.3`**

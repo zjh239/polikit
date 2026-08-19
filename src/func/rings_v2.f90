@@ -1,47 +1,46 @@
-MODULE rings_simple
+MODULE rings_v2
     USE precision
+    use iso_fortran_env, only: int64
     USE data_input, only: natom, coord_data
     USE neighbor_finder, only: neigh_list
     USE stdlib_array
+    use rsa_hash
     IMPLICIT NONE
 
-    TYPE ring
-        integer :: l
-        integer :: element(24) = 0
-        integer :: sorted(24) = 0
-    END TYPE
+    integer, allocatable, dimension(:,:) :: ring_list_sorted
+    integer, allocatable, dimension(:,:) :: ring_list_raw
 
-    integer, allocatable :: path_list_size(:)
+    integer, allocatable, dimension(:) :: ring_len_list
+    integer, allocatable, dimension(:) :: next_in_bucket
+    integer(int64), allocatable, dimension(:) :: raw_hash_value
+
+    integer(int64), allocatable :: path_list_size(:)
 
     integer :: ringlist_cap, ringlist_size  ! Main ring list capacity and current size.
+
     real(dp) :: tstart, tcheck, tneilist, tfindring, tcheckrepi, tcheckpr, taddring
     integer :: crude_ring_num
 
-    type(ring) :: emptyring
+    integer :: max_ring_size = 24
 
 CONTAINS
 
-SUBROUTINE rsa_simple(maxlvl)     ! Ring statistics analysis simple
+SUBROUTINE rsa_v2(maxlvl)     ! Ring statistics analysis simple
     IMPLICIT NONE
     ! in:
     integer, intent(in) :: maxlvl  ! Max length, decided by ring size limit
     ! PRIVATE:
     integer :: atom     ! Center node index
 
-    type(ring), allocatable, dimension(:) :: ringList
-    integer(inp), allocatable, dimension(:,:) :: pathArray
-
+    integer, allocatable, dimension(:,:) :: pathArray
     real(dp) :: mean_path_size
-
-    emptyring%l = 0
-    emptyring%element = 0
-    emptyring%sorted = 0
 
     ringlist_cap = 1000
     ringlist_size = 0
 
     crude_ring_num = 0
 
+    ! time counters
     tneilist = 0.
     tfindring = 0.
     tcheckrepi = 0.
@@ -52,8 +51,17 @@ SUBROUTINE rsa_simple(maxlvl)     ! Ring statistics analysis simple
     print *, 'Max branch length:', maxlvl
     if(.not. allocated(path_list_size)) allocate(path_list_size(natom))
 
-    allocate(ringList(ringlist_cap))
-    ringList%l = 0
+    allocate(ring_list_sorted(ringlist_cap, max_ring_size))
+    ring_list_sorted = 0
+    allocate(ring_list_raw(ringlist_cap, max_ring_size))
+    ring_list_raw = 0
+    allocate(ring_len_list(ringlist_cap))
+    ring_len_list = 0
+    allocate(next_in_bucket(ringlist_cap))
+    next_in_bucket = 0
+    allocate(raw_hash_value(ringlist_cap))
+    raw_hash_value = 0_int64
+    call init_hash()
 
     path_list_size = 0
 
@@ -61,10 +69,10 @@ SUBROUTINE rsa_simple(maxlvl)     ! Ring statistics analysis simple
         print *, atom
         CALL create_path_list(atom, maxlvl, pathArray)
 
-        CALL find_rings(pathArray, ringList)
+        CALL find_rings(pathArray)
     END DO
 
-    call print_ringno(ringList(:ringlist_size)%l)
+    call print_ringno(ring_len_list(:ringlist_size))
 
     mean_path_size = sum(path_list_size(:))/size(path_list_size)
     print *, 'Average path list array size is:', mean_path_size
@@ -73,21 +81,23 @@ SUBROUTINE rsa_simple(maxlvl)     ! Ring statistics analysis simple
 !         print '(I0, *(2x,I0))', atom, ringList(atom)%element
 !     end do
 
-    print *, 'Crude ring number found:', crude_ring_num
+    print *, info//' Crude ring number found:', crude_ring_num
 
-END SUBROUTINE rsa_simple
+    call clean_rsa_v2()
+
+END SUBROUTINE rsa_v2
 
 ! This subroutine creates the shortest paths list of a given center node(atom).
 SUBROUTINE create_path_list(id_in, lvlim, pathArray)
     IMPLICIT NONE
     ! IN:
-    integer(inp), intent(in) :: id_in, lvlim
+    integer, intent(in) :: id_in, lvlim
     ! OUT:
-    integer(inp), allocatable, dimension(:,:), intent(out) :: pathArray ! pathlist
+    integer, allocatable, dimension(:,:), intent(out) :: pathArray ! pathlist
     ! PRIVATE:
-    integer(inp), allocatable, dimension(:,:) :: tmp
-    integer(inp) :: i, row, k !
-    integer(inp) :: lvl  !
+    integer, allocatable, dimension(:,:) :: tmp
+    integer :: i, row, k !
+    integer :: lvl  !
 
     call cpu_time(tstart)
 
@@ -157,29 +167,24 @@ END SUBROUTINE create_path_list
 
 ! This subroutine finds all the possible rings around a center atom, given the
 !   constructed shortest paths list. Push all the found rings to a data container.
-SUBROUTINE find_rings(pathlist, mainringlist)
+SUBROUTINE find_rings(pathlist)
 ! natomring, ringatom, noprlist, numnopr, noprindex)
     IMPLICIT NONE
     ! IN:
-    integer(inp), allocatable, dimension(:,:), intent(in) :: pathlist
+    integer, dimension(:,:), intent(in) :: pathlist
     ! inOUT:
-    type(ring), allocatable, dimension(:), intent(inout) :: mainringlist
     ! PRIVATE:
-    type(ring), allocatable, dimension(:) :: ringlist
-    integer(inp) :: mxrow
+!     type(ring), allocatable, dimension(:) :: ringlist
+    integer :: mxrow
     logical, allocatable, dimension(:,:) :: vis
     logical, allocatable, dimension(:) :: bpoint
-    integer(inp), allocatable, dimension(:,:) :: vispl
+    integer, allocatable, dimension(:,:) :: vispl
 !     integer(inp), dimension(:), allocatable :: smlst
-    integer(inp) :: rma, rmb, id, q, t(1), lvl, n, mxlvl, l, j, id2, id0, n1, n2
-    integer(inp) :: row, row_2
+    integer :: rma, rmb, id, q, t(1), lvl, n, mxlvl, l, j, id2, id0, n1, n2
+    integer :: row, row_2
     real(dp) :: start, end
 
     call cpu_time(tstart)
-
-    allocate(ringList(1))
-    ringList(1)%l = 0
-    ringList(1)%element = 0
 
     mxrow = size(pathlist(:,1))
     mxlvl = size(pathlist(1,:))
@@ -197,7 +202,7 @@ SUBROUTINE find_rings(pathlist, mainringlist)
     if (mxlvl > 1) id  = pathlist(1,2)
     do row = 1, mxrow
         if (mxlvl == 1) exit
-    ! This part garantees the two paths split at the beginning.
+
         if (pathlist(row,2) /= id) then
             rmb = row-1
             vis(rma:rmb, rma:rmb) = .false.
@@ -218,9 +223,9 @@ SUBROUTINE find_rings(pathlist, mainringlist)
                 vis(:,row) = .false.
                 cycle
             end if
-            if (bpoint(row) &   ! This means the second last element changed.
-                .or. pathlist(row, lvl) /= id) then ! This means the current element changed.
-                bpoint(row) = .true.      ! Modify this for the next lvl check.
+            if (bpoint(row) &   !
+                .or. pathlist(row, lvl) /= id) then !
+                bpoint(row) = .true.      !
                 id = pathlist(row,lvl)
 
                 id2 = id
@@ -238,7 +243,7 @@ SUBROUTINE find_rings(pathlist, mainringlist)
                                 tfindring = tfindring + (tcheck - tstart)
                                 crude_ring_num = crude_ring_num +1
 
-                                call add_ring(pathlist(row,:lvl), pathlist(row_2,:lvl), mainringlist)
+                                call add_ring(pathlist(row,:lvl), pathlist(row_2,:lvl))
 
                                 call cpu_time(tstart)
                                 vis(row_2,:) = .false.
@@ -253,7 +258,7 @@ SUBROUTINE find_rings(pathlist, mainringlist)
                                 tfindring = tfindring + (tcheck - tstart)
                                 crude_ring_num = crude_ring_num +1
 
-                                call add_ring(pathlist(row,:lvl), pathlist(row_2,:lvl), mainringlist)
+                                call add_ring(pathlist(row,:lvl), pathlist(row_2,:lvl))
 
                                 call mod_pr(pathlist(row,:lvl), pathlist(row_2,:lvl), vis, pathlist)
                                 call cpu_time(tstart)
@@ -271,10 +276,6 @@ SUBROUTINE find_rings(pathlist, mainringlist)
         end if
     end do
 
-!     call rm_not_pr(ringList)
-
-!     if (ringList(1)%l /= 0) call add_ringlist(mainringlist, ringList)
-
     deallocate(bpoint)
 
     call cpu_time(tcheck)
@@ -285,30 +286,31 @@ END SUBROUTINE find_rings
 FUNCTION checkShortCut(rr) RESULT(ifpr)
     IMPLICIT NONE
     ! IN:
-    type(ring), intent(in) :: rr    ! Input ring
+    integer, intent(in) :: rr(:)
     ! OUT:
     logical :: ifpr
     ! PRIVATE:
-    integer :: src1, src2, src3   ! check-node and its mid-node(even ring) or mid-nodes(odd ring).
+    integer :: src1, src2, src3   !
     logical :: isodd
-    integer, allocatable, dimension(:) :: elem  ! Stores two repeated ring list elements for a constant offset.
-    integer, allocatable, dimension(:) :: head1, head2  ! Heads list of the wave.
-    integer, allocatable, dimension(:) :: last1, last2  ! Heads list of last level.
+    integer, allocatable, dimension(:) :: elem  !
+    integer, allocatable, dimension(:) :: head1, head2  !
+    integer, allocatable, dimension(:) :: last1, last2  !
     integer, allocatable, dimension(:) :: scndlast1, scndlast2
     integer, allocatable, dimension(:) :: tmp
     integer :: lvl, j, n, m, l, distance
-    integer :: brlen, clen, mxlvl  ! branch length, current length
+    integer :: brlen, clen, mxlvl  !
     
     call cpu_time(tstart)
+    l = size(rr)
 
     isodd = .false.
-    if (mod(rr%l,2)/=0) isodd = .true.
+    if (mod(l,2)/=0) isodd = .true.
 
     ifpr = .true.
-    allocate(elem(rr%l*2))
-    elem = [rr%element(:rr%l), rr%element(:rr%l)]   ! Avoid seg. fault.
+    allocate(elem(l*2))
+    elem = [rr(:), rr(:)]   !
 
-    brlen = ceiling((rr%l+1)/2.)
+    brlen = ceiling((l+1)/2.)
     mxlvl = ceiling(brlen/2.)
 
     associate(n_neighbor => neigh_list%n_neighbor, neighbor => neigh_list%neighbors)
@@ -331,7 +333,6 @@ FUNCTION checkShortCut(rr) RESULT(ifpr)
         endif
 
         do lvl = 2, mxlvl
-            ! update head1.
             call move_alloc(last1, scndlast1)
             call move_alloc(head1, last1)
             allocate(head1(1), source=0)
@@ -339,30 +340,24 @@ FUNCTION checkShortCut(rr) RESULT(ifpr)
             n = 1
             do while (n <= size(last1))
                 do j = 1, n_neighbor(last1(n))
-                    ! if this atom is already in the wave, cycle
                     if (any(scndlast1==neighbor(last1(n), j))) cycle
                     if (any(last1==neighbor(last1(n), j))) cycle
                     if (any(head1==neighbor(last1(n), j))) cycle
 
-                    ! if not cycled, push it to the list
                     if (head1(1)==0) then
                         head1(1) = neighbor(last1(n), j)
                     else
                         allocate(tmp(size(head1)+1))
                         tmp(:size(head1)) = head1
                         tmp(size(head1)+1) = neighbor(last1(n), j)
-!                         deallocate(head1)
                         call move_alloc(tmp, head1)
                     end if
                 end do
 
-!                 if (n >= size(last1)) exit
                 n = n+1
             end do
-            ! check if the branches meet.
             do n = 1, size(head1)
                 if (any(head2 == head1(n))) then
-                    ! print *, 'Short cut found, length is', 2*i-2, ', meet at ', tmp1(n)
                     ifpr = .false.
                     return
                 end if
@@ -376,42 +371,35 @@ FUNCTION checkShortCut(rr) RESULT(ifpr)
                     cycle
                 end if
             end if
-            ! update head2.
+
             call move_alloc(last2, scndlast2)
             call move_alloc(head2, last2)
             allocate(head2(1), source=0)
             n = 1
             do while(n <= size(last2))
                 do j = 1, n_neighbor(last2(n))
-                    ! if this atom is already in the wave, cycle
                     if (any(scndlast2==neighbor(last2(n), j))) cycle
                     if (any(last2==neighbor(last2(n), j))) cycle
                     if (any(head2==neighbor(last2(n), j))) cycle
 
-                    ! if not cycled, push it to the list
                     if (head2(1)==0) then
                         head2(1) = neighbor(last2(n), j)
                     else
                         allocate(tmp(size(head2)+1))
                         tmp(:size(head2)) = head2
                         tmp(size(head2)+1) = neighbor(last2(n), j)
-!                         deallocate(head2)
                         call move_alloc(tmp, head2)
                     end if
                 end do
-
-!                 if (n >= size(last2)) exit
                 n = n+1
             end do
             clen = lvl*2
-            ! check if the branches meet.
             do n = 1, size(head2)
                 if (any(head1 == head2(n))) then
                     ifpr = .false.
                     return
                 end if
             end do
-            ! deallocate second last lists.
             if (allocated(scndlast1)) deallocate(scndlast1)
             if (allocated(scndlast2)) deallocate(scndlast2)
         end do
@@ -423,9 +411,7 @@ FUNCTION checkShortCut(rr) RESULT(ifpr)
     if (allocated(last2)) deallocate(last2)
 
     end do
-
     end associate
-
     deallocate(elem)
 
     call cpu_time(tcheck)
@@ -434,24 +420,28 @@ END FUNCTION checkShortCut
 
 ! This subroutine adds a new ring type element to the ring list. The inputs are two
 !   integer type lists, means the two branches of a ring.
-SUBROUTINE add_ring(branch1, branch2, mainringlist)
+SUBROUTINE add_ring(branch1, branch2)
     IMPLICIT NONE
     ! IN:
-    integer(inp), intent(in) :: branch1(:), branch2(:)
+    integer, intent(in) :: branch1(:), branch2(:)
     ! INOUT:
-    type(ring), allocatable, intent(inout) :: mainringlist(:)
     ! PRIVATE:
-    type(ring), allocatable :: tmp(:)
-    type(ring) :: ar
+    integer, allocatable, dimension(:,:) :: tmp_2d
+    integer, allocatable, dimension(:) :: tmp_1d, element, sorted
+
     logical :: isodd, doexist, ispr, gofound
-    integer(inp) :: k, i, t
-    integer :: rpos
+    integer :: k, i, t, l
+    integer :: rpos, b_index
+    integer(int64) :: h_value
 
     k = size(branch1)
     
-    ar%l = 0
-    ar%element = 0
-    ar%sorted = 0
+    ! need allocation
+    l = 0
+    allocate(element(max_ring_size))
+    allocate(sorted(max_ring_size))
+    element = 0
+    sorted = 0
 
     if (branch1(k) == branch2(k)) then
         isodd=.false.
@@ -461,137 +451,63 @@ SUBROUTINE add_ring(branch1, branch2, mainringlist)
 
     if (isodd) then
         t = 2*k-3
-        ar%l = t
-        ar%element(:t) = [branch1(:k-2), branch2(k:2:-1)]
+        l = t
+        element(:t) = [branch1(:k-2), branch2(k:2:-1)]
     else
          t = 2*k-2
-         ar%l = t
-        ar%element(:t) = [branch1(:k-1), branch2(k:2:-1)]
+         l = t
+        element(:t) = [branch1(:k-1), branch2(k:2:-1)]
     end if
 
-    ar%sorted(:t) = ar%element(:t)
-    call bubble_sort(t, ar%sorted)
-
     ! Sort the ring elements and check if it already exist in the list.
+    sorted(:t) = element(:t)
+    call bubble_sort(t, sorted)
+
     call cpu_time(tstart)
 
-    call new_check_rp(ar, mainringlist, rpos, doexist)
+    ! Use sorted ring to calculate hash.
+    h_value = hash_ring(sorted(:t))
 
-    call cpu_time(tcheck)
-    tcheckrepi = tcheckrepi + (tcheck - tstart)
+    b_index = int(modulo(h_value, int(table_size, int64))) + 1
 
-    if (doexist .eqv. .false.) then
-        ispr = checkShortCut(ar)
-        if (ispr) then
-            call cpu_time(tstart)
+    if (check_rp_hash(b_index, sorted, hash_table, next_in_bucket, ring_list_sorted)) then
+        return
+    else
+        if (checkShortCut(element(:t))) then
+            ringlist_size = ringlist_size+1
+            ring_list_raw(ringlist_size, :) = element
+            ring_list_sorted(ringlist_size, :) = sorted
+            ring_len_list(ringlist_size) = t
+            raw_hash_value(ringlist_size) = h_value
 
-            if (ringlist_size == 0) then
-                mainringlist(1) = ar
-                ringlist_size = 1
-            else if (ringlist_size < ringlist_cap) then
-                mainringlist(rpos:ringlist_size+1) = eoshift(mainringlist(rpos:ringlist_size+1), shift=-1, boundary=emptyring)
-                mainringlist(rpos) = ar
-                ringlist_size = ringlist_size + 1
-
-            else if (ringlist_size == ringlist_cap) then
-                ! Expand the ring list if full.
-                ringlist_cap = ringlist_cap*2
-                allocate(tmp(ringlist_cap))
-                tmp(:ringlist_size) = mainringlist(:ringlist_size)
-                deallocate(mainringlist)
-                call move_alloc(tmp, mainringlist)
-                print '(a,i0,a)', ' Main ring list expanded to size: ', sizeof(mainringlist)/1024, ' KB;'
-            end if
-
-            call cpu_time(tcheck)
-            taddring = taddring + (tcheck - tstart)
+            next_in_bucket(ringlist_size) = hash_table(b_index)
+            hash_table(b_index) = ringlist_size
         end if
     end if
 
-END SUBROUTINE add_ring
-
-subroutine new_check_rp(ar, mainringlist, pos, goal_found)
-    implicit none
-    ! IN:
-    type(ring), intent(in) :: ar
-    type(ring), allocatable, intent(in) :: mainringlist(:)
-    ! OUT:
-    integer, intent(out) :: pos
-    logical, intent(out) :: goal_found
-    ! Private:
-    integer :: low, high, middle, level, goal, row, n_elem, last_low, last_high
-
-    n_elem = ar%l
-    low = 1
-    high = ringlist_size
-
-    level = 1
-    pos = 1
-
-    goal_found = .true.
-
-    do while(level <= n_elem)
-        goal = ar%sorted(level)
-
-        last_low = low
-        last_high = high
-        DO WHILE(low <= high)! .AND. pos == -1)
-            ! If item out of range, return
-            if (goal < mainringlist(low)%sorted(level)) then
-                pos = low
-                goal_found = .false.
-                return
-            else if (goal > mainringlist(high)%sorted(level)) then
-                pos = high+1
-                goal_found = .false.
-                return
-            end if
-
-            ! Now searching element middle.
-            middle = (low + high)/2
-            IF (goal == mainringlist(middle)%sorted(level)) THEN
-                pos = middle
-                exit
-            ELSE IF (goal < mainringlist(middle)%sorted(level)) THEN
-                high = middle-1
-            ELSE
-                low = middle+1
-            END IF
-        END DO
-
-        ! Get the new range of the list.
-        do row = pos, last_low, -1
-            if(mainringlist(row)%sorted(level) == mainringlist(pos)%sorted(level)) then
-                low = row
-            else
-                exit
-            end if
-        end do
-        do row = pos, last_high
-            if(mainringlist(row)%sorted(level) == mainringlist(pos)%sorted(level)) then
-                high = row
-            ELSE
-                exit
-            end if
-        end do
-
-        level = level+1
-    end do
-
-    if (ringlist_size == 0) then
-        goal_found = .false.
-        pos = 1
-        return
+    if (ringlist_size >= load_bar) load_bar = rehash(next_in_bucket, raw_hash_value)
+    if (ringlist_size == ringlist_cap) then
+        call r_list_expand(ring_list_raw, &
+                        ring_list_sorted, next_in_bucket, ring_len_list, raw_hash_value)
+        ringlist_cap = ringlist_cap*2
     end if
-end subroutine new_check_rp
+
+    call cpu_time(tcheck)
+    tcheckrepi = tcheckrepi + (tcheck - tstart)
+    call cpu_time(tstart)
+
+    call cpu_time(tcheck)
+    taddring = taddring + (tcheck - tstart)
+
+END SUBROUTINE add_ring
 
 ! Modify the visibility array according to the primitive ring definition.
 SUBROUTINE mod_pr(branch1, branch2, vis, pathlist)
     IMPLICIT NONE
-    integer(inp), intent(in) :: pathlist(:,:)
-    integer(inp), intent(in) :: branch1(:), branch2(:)
+    integer, intent(in) :: pathlist(:,:)
+    integer, intent(in) :: branch1(:), branch2(:)
     logical, intent(inout) :: vis(:,:)
-    integer(inp) :: k, m, a, i, j
+    integer :: k, m, a, i, j
     logical :: isodd
     logical, allocatable :: mask1(:), mask2(:), tmp(:)
 
@@ -686,26 +602,16 @@ subroutine print_ringno(ring_l)
 
 end subroutine print_ringno
 
-pure function randomness(ringa)
-    implicit none
-    ! Input:
-    type(ring), intent(in) :: ringa
-    ! Output:
-    real(dp) :: randomness
+subroutine clean_rsa_v2()
 
-    integer :: i, id, t, r_count
+    if (allocated(ring_list_sorted))    deallocate(ring_list_sorted)
+    if (allocated(ring_list_raw))       deallocate(ring_list_raw)
 
-    t = coord_data%ptype(ringa%element(1))
+    if (allocated(ring_len_list))       deallocate(ring_len_list)
+    if (allocated(next_in_bucket))      deallocate(next_in_bucket)
+    if (allocated(raw_hash_value))      deallocate(raw_hash_value)
 
-    do i = 2, ringa%l
-        id = ringa%element(i)
-        if (t /= coord_data%ptype(id)) r_count = r_count + 1
-        t = coord_data%ptype(id)
-    end do
-    if (t /= coord_data%ptype(1)) r_count = r_count + 1
+    call clean_hash()
+end subroutine clean_rsa_v2
 
-    randomness = r_count/ringa%l
-
-end function
-
-END MODULE rings_simple
+END MODULE rings_v2
