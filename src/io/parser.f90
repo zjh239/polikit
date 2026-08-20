@@ -208,7 +208,7 @@ print *, info//"  ./polikit -f ../test/ga2o3_test.xyz -p 1 -wa 5          (Wendt
 print *, info//"  ./polikit -f ../test/ga2o3_test.xyz -p 1 -ha 2.3        (Honeycutt-Anderson parameters)"
 print *, info//"  ./polikit -f ../test/ga2o3_test.xyz -p 1 -ring 2.3 8    (ring statistics analysis)"
 print *, info//"  ./polikit -d ../test/test_dir/ -os 3 -p 1 -nc 2.3       (dynamic neighbor change)"
-print *, info//"  ./polikit -d ../test/test_dir/ -os 1 -p 1 -d2min 4.6    (LPSE inheritance analysis)"
+print *, info//"  ./polikit -d ../test/test_dir/ -os 1 -p 1 -d2min 4.6    (Non-affine displacement analysis)"
 print *, info//"  ./polikit -d ../test/test_dir/ -os 1 -p 1 -lpse 4.6 2.3 (LPSE analysis)"
 print *, info//"  ./polikit -d ../test/test_dir/ -os 1 -p 1 -ci 4.6 2.3   (LPSE inheritance analysis)"
 print *, info//" Variables:  "
