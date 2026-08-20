@@ -59,9 +59,8 @@ contains
             print *, info//' Frame interval is ', frame_interval
         case('-rdf')
             flag_rdf = .true.
-            call get_command_argument(i+1, args)
-            read (args, *) rdf_r
-            print *, info//' RDF cutoff value is:', rdf_r
+            call get_command_argument(i+1, cutoff_str)
+            print *, info//' RDF cutoff value is:', cutoff_str
         case('-d2min')
             flag_nfd = .true.
             flag_d2min = .true.
@@ -154,7 +153,7 @@ contains
         case ("--version", "-v")
             CALL version_msg()
         case default
-            if(verify('-', args) == 0) then
+            if (args(1:1) .eq. '-') then
                 print *, error//' Input contains unknown variable: ', args
                 stop
             end if

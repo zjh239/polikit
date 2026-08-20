@@ -494,10 +494,7 @@ SUBROUTINE add_ring(branch1, branch2)
 
     call cpu_time(tcheck)
     tcheckrepi = tcheckrepi + (tcheck - tstart)
-    call cpu_time(tstart)
 
-    call cpu_time(tcheck)
-    taddring = taddring + (tcheck - tstart)
 
 END SUBROUTINE add_ring
 
@@ -510,6 +507,8 @@ SUBROUTINE mod_pr(branch1, branch2, vis, pathlist)
     integer :: k, m, a, i, j
     logical :: isodd
     logical, allocatable :: mask1(:), mask2(:), tmp(:)
+
+    call cpu_time(tstart)
 
     k = size(branch1)
     m = size(vis(:,1))
@@ -565,6 +564,9 @@ SUBROUTINE mod_pr(branch1, branch2, vis, pathlist)
     deallocate(mask1)
     deallocate(mask2)
     deallocate(tmp)
+
+    call cpu_time(tcheck)
+    taddring = taddring + (tcheck - tstart)
 END SUBROUTINE mod_pr
 
 subroutine print_ringno(ring_l)
@@ -595,7 +597,7 @@ subroutine print_ringno(ring_l)
 
     print *, ' ### RSA Time Cost'
     print *, '_________________________________________________________________________________'
-    print *, '| T(Path List)  | T(Find Ring)  | T(Rep. Check) | T(PR Check)   | T(Add Ring)   |'
+    print *, '| T(Path List)  | T(Find Ring)  | T(Chk&Insert) | T(PR Check)   | T(VA modif)   |'
     print 108, tneilist, tfindring, tcheckrepi, tcheckpr, taddring
     print *, '|_______________|_______________|_______________|_______________|_______________|'
 108 format (' | ', *(f11.3,' s | '))

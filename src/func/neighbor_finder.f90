@@ -89,7 +89,6 @@ SUBROUTINE create_bins(rCut, cells_n, cells_xpbc, cells_ypbc, cells_zpbc, cells_
   cells_zpbc = 0
   cells_ids = 0
 
-!!$omp parallel do default(private) shared(cells_n, cells_ids)
   do atom = 1, natom
     xbin = CEILING(realxyz(atom, 1)/rCut)
     ybin = CEILING(realxyz(atom, 2)/rCut)
@@ -119,9 +118,7 @@ SUBROUTINE create_bins(rCut, cells_n, cells_xpbc, cells_ypbc, cells_zpbc, cells_
     cells_ids(xbin,ybin,zbin,cells_n(xbin,ybin,zbin)) = atom
 
   end do
-!!$omp end parallel do
 
-! Create periodic image on the right dimension.
 !   if (pbc == 1) then
     do xbin = 0, xbin_max + 1
     do ybin = 0, ybin_max + 1
@@ -145,7 +142,6 @@ SUBROUTINE create_bins(rCut, cells_n, cells_xpbc, cells_ypbc, cells_zpbc, cells_
     end do
     end do
     end do
-!   endif
 
     maxn = maxval(cells_n)
 

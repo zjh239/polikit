@@ -4,7 +4,7 @@ module params
   use precision
   implicit none
     ! basic params
-    character(len=80) :: path, file_name, conf_file   ! path that contain files, or file names
+    character(len=180) :: path, file_name, conf_file   ! path that contain files, or file names
     character(len=20) :: coption, doption
     character(len=40), allocatable :: fnames(:)
     logical :: static = .true.

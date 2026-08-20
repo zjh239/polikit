@@ -160,6 +160,8 @@ subroutine r_list_expand(l1, l2, l3, l4, l5)
     deallocate(l5)
     call move_alloc(tmp_64, l5)
 
+    print '(a,i0,a)', ' Ring list expanded, space cost: ', 2.5*sizeof(l1)/1024, ' KB;'
+
 end subroutine r_list_expand
 
 subroutine clean_hash()

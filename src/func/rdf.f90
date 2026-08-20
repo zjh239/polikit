@@ -2,7 +2,6 @@
 module rdf
     use precision
     use data_types
-    use parser, only: rdf_r
     use data_input, only: coord_data, natom, ntype, atom_frac
     use neighbor_finder
 
@@ -14,9 +13,10 @@ module rdf
 
     contains
 
-subroutine get_rdf()
+subroutine get_rdf(cutoffs)
     implicit none
     ! in:
+    real(dp), intent(in) :: cutoffs(:,:)
     ! cutoff, xyz
     real(dp) :: bin_size, atom_density, r, d, cutoff
     integer :: bin_count = 400
@@ -43,7 +43,12 @@ subroutine get_rdf()
     allocate(raw_dis(cap))
     allocate(raw_type(cap, 2))
 
-    cutoff = rdf_r
+    if (size(cutoffs(1,:)) /= 1) then
+        stop error//' RDF analysis does not accept pair-wise cutoffs, quit.'
+    else
+        cutoff = cutoffs(1,1)
+    end if
+
     r = cutoff**2
     bin_size = cutoff/bin_count
     call get_bin_pos(cutoff, bin_count) ! initialize bin_info, rdf_raw, rdf_data
@@ -51,9 +56,8 @@ subroutine get_rdf()
     atom_density = natom / (coord_data%lx * coord_data%ly * coord_data%lz)
 
     call create_bins(cutoff,cells_n, cells_xpbc, cells_ypbc, cells_zpbc, cells_ids, xbin_max, ybin_max, zbin_max)
-!!$omp parallel do default(private)
+
     do xbin = 1, xbin_max
-!     PRINT*, "Hello from thread", xbin, OMP_GET_THREAD_NUM()
     do ybin = 1, ybin_max
     do zbin = 1, zbin_max
         do atom = 1, cells_n(xbin, ybin, zbin)
@@ -114,7 +118,6 @@ subroutine get_rdf()
     end do
     end do
 
-!!$omp end parallel do
     o = raw_id-1
     ! Sort and push results to correct bin.
     call para_sort(raw_dis(:o), raw_type(:o,:))
@@ -129,7 +132,7 @@ subroutine get_rdf()
 
     ideal_count = 4*pi*bin_info(1,:)**2*bin_size*atom_density*natom
     sum_rdf = [(sum(rdf_raw(:,:,o)), o=1, bin_count)]
-!     sum(rdf_raw, dim=3)
+
     rdf_data(1,:) = sum_rdf/ideal_count
 
     o = 2
@@ -143,24 +146,29 @@ subroutine get_rdf()
 
 end subroutine get_rdf
 
-subroutine calculate_rdf()
+subroutine calculate_rdf(cutoffs)
     implicit none
+    ! in:
+    real(dp), intent(in) :: cutoffs(:,:)
 
-    call get_rdf()
+    call get_rdf(cutoffs)
     call print_rdf()
 
 end subroutine calculate_rdf
 
 ! Calculate the Wendt-Abraham parameter from RDF data.
-subroutine wa_parameter()
+subroutine wa_parameter(cutoffs)
     implicit none
+    ! in:
+    real(dp), intent(in) :: cutoffs(:,:)
+    !
     integer, dimension(1) :: p
     integer :: minp, maxp
     real(dp) :: gmin, gmax
     real(dp) :: r_wa    ! Wendt-Abraham parameter
     real(dp) :: r_mwa   ! Modified Wendt-Abraham parameter
 
-    call get_rdf()
+    call get_rdf(cutoffs)
     p = maxloc(rdf_data(1,:))
     maxp = p(1)
     gmax = rdf_data(1,maxp)
@@ -243,18 +251,17 @@ end subroutine push_to_histbin
 subroutine print_rdf()
     implicit none
     integer :: i, j, t
-    character(len=8) :: str
+    character(len=9) :: str
     character(:), allocatable :: head
     real(dp), allocatable :: row(:)
 
     allocate(row(2+ntype*(ntype+1)/2))
-    head = 'r     g(r)'
+    head = ' |  r  |  g(r) | '
 
     print *, '================================================'
     do i = 1, ntype
         do j = i, ntype
-            t = i*10+j
-            write (str, '(I8)') t
+            str = type_name(i)//' - '//type_name(j)//' | '
             head  = head//str
         end do
     end do
