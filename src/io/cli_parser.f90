@@ -154,7 +154,7 @@ contains
             CALL version_msg()
         case default
             if (args(1:1) .eq. '-') then
-                print *, error//' Input contains unknown variable: ', args
+                print *, error//' Unknown option, are you using file name as option: ', args
                 stop
             end if
         end select
