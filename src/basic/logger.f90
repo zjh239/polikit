@@ -43,31 +43,61 @@ module logger
 
 contains
 
-subroutine logger_init()
-    implicit none
-    logical :: use_color
+    subroutine logger_init()
+        implicit none
+        logical :: use_color
 
-    ! Check if standard output (unit 6) is a terminal
-    ! Note: isatty usually takes the file descriptor (0, 1, 2)
-    ! For stdout, the descriptor is 1.
-    use_color = isatty(1)
+        ! Check if standard output (unit 6) is a terminal
+        ! Note: isatty usually takes the file descriptor (0, 1, 2)
+        ! For stdout, the descriptor is 1.
+        use_color = isatty(1)
 
-    if (use_color) then
-        error = red//'[error]'//white
-        info  = green//'[-info]'//white
-        warn  = yellow//'[-warn]'//white
-        trace = blue//'[trace]'//white
-        other = magenta//'[other]'//white
-        debug = cyan//'[debug]'//white
-    else
-        error = '[error]'
-        info  = '[-info]'
-        warn  = '[-warn]'
-        trace = '[trace]'
-        other = '[other]'
-        debug = '[debug]'
-    end if
+        if (use_color) then
+            error = red//'[error]'//white
+            info  = green//'[-info]'//white
+            warn  = yellow//'[-warn]'//white
+            trace = blue//'[trace]'//white
+            other = magenta//'[other]'//white
+            debug = cyan//'[debug]'//white
+        else
+            error = '[error]'
+            info  = '[-info]'
+            warn  = '[-warn]'
+            trace = '[trace]'
+            other = '[other]'
+            debug = '[debug]'
+        end if
 
-!     print *, warn//' Initializing logger;'
-end subroutine
+    !     print *, warn//' Initializing logger;'
+    end subroutine logger_init
+
+    subroutine progress_bar(current, total)
+        use iso_fortran_env, only: output_unit
+        implicit none
+
+        integer, intent(in) :: current, total
+        integer :: percent, step
+        integer :: nfilled, ou
+        integer, parameter :: width = 40
+        character(len=width) :: bar
+
+        step = max(1, total / 1000)
+        if (mod(current, step) /= 0 .and. current /= total) return
+
+        percent = int(100.0 * real(current) / real(total))
+
+        nfilled = int(real(width) * real(current) / real(total))
+
+        bar = repeat('=', nfilled) // &
+            repeat('`.', width - nfilled)
+
+        write(output_unit,'(A,A,A,I3,A)', advance='no') &
+            achar(13), ' '//info//' [', bar, percent, '%]'
+        call flush(output_unit)
+
+        if (current == total) then
+            write(output_unit,*)
+        end if
+
+    end subroutine progress_bar
 end module logger

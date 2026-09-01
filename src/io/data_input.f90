@@ -75,6 +75,7 @@ SUBROUTINE read_xyz_file(file_name, path)
 
     read (20,*, iostat=ierr) natom
     print *, info, natom," atoms read from ", trim(file_name)
+
     read (20,*, iostat=ierr)
 
     if (.not. allocated(coord_data)) then

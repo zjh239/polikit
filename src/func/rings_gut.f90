@@ -1,4 +1,6 @@
-MODULE rings_v2
+! rings_gut.f90
+! guttman rings
+MODULE rings_gut
     USE precision
     use iso_fortran_env, only: int64
     USE data_input, only: natom, coord_data
@@ -304,7 +306,7 @@ FUNCTION checkShortCut(rr) RESULT(no_short_cut)
     integer, allocatable, dimension(:) :: tmp
     integer :: lvl, j, n, m, l, distance
     integer :: brlen, clen, mxlvl  !
-    
+
     call cpu_time(tstart)
     l = size(rr)
 
@@ -443,7 +445,7 @@ function add_ring(branch1, branch2) result(add_success)
 
     add_success = .false.
     k = size(branch1)
-    
+
     ! need allocation
     if (max_ring_size == 0) stop error//' Max ring size not initialized correctly, quit.'
 
@@ -628,4 +630,4 @@ subroutine clean_rsa_v2()
     call clean_hash()
 end subroutine clean_rsa_v2
 
-END MODULE rings_v2
+END MODULE rings_gut

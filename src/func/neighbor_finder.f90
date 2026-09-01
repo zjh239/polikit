@@ -145,13 +145,12 @@ SUBROUTINE create_bins(rCut, cells_n, cells_xpbc, cells_ypbc, cells_zpbc, cells_
 
     maxn = maxval(cells_n)
 
-    if (maxn > 16) maxn = 16
-
-    do i = 0, maxn
-      amount = count(cells_n == i)
-      print '(a,i0,a,i0,a)', ' '//info//' ', amount, ' bins with atom number ', i,';'
-    end do
-
+    if (maxn < 16) then
+      do i = 0, maxn
+        amount = count(cells_n == i)
+        print '(a,i0,a,i0,a)', ' '//info//' ', amount, ' bins with atom number ', i,';'
+      end do
+    end if
     print *, info//' Leaving bins construction subroutine ...'
 
 END SUBROUTINE create_bins
@@ -163,7 +162,7 @@ SUBROUTINE find_neighbors(cutoffs, cal_delta)
   logical, intent(in) :: cal_delta
   !
   integer :: xbin_max, ybin_max, zbin_max
-  integer :: xbin, ybin, zbin, atom, atom2, p, q, o
+  integer :: xbin, ybin, zbin, atom, atom2, p, q, o, k
   integer :: id, checkid, type1, type2
   real(dp) :: d, x_tmp, y_tmp, z_tmp
 
@@ -173,6 +172,7 @@ SUBROUTINE find_neighbors(cutoffs, cal_delta)
   real(dp), allocatable :: r
   real(dp), dimension(:,:), allocatable :: r_square
 
+  k = 0
   if (.not. allocated(r_square)) allocate(r_square(ntype, ntype))
 
   if (size(cutoffs(1,:)) == 1) then
@@ -188,7 +188,7 @@ SUBROUTINE find_neighbors(cutoffs, cal_delta)
   end if
 
   n_cap = 2*maxval(cutoffs)**3
-  print *, info//' Capacity of neighbor list is set to: ', n_cap
+  print '(a, i0, a)', ' '//info//' Capacity of neighbor list is set to: ', n_cap, ';'
 
   if (.not. allocated(neigh_list)) allocate(neighbor_list(atom_number = natom, capacity = n_cap) :: neigh_list)
   print '(a,i0,a)', ' '//info//' Constructing neighbor list, memory cost: ', sizeof(neigh_list%neighbors)/1024, ' KB;'
@@ -202,6 +202,7 @@ SUBROUTINE find_neighbors(cutoffs, cal_delta)
   end if
 
   if (.not. allocated(cn_by_type)) allocate(cn_by_type(natom, ntype))
+  print '(a,i0,a)', ' '//info//' Constructing type-wise counter, memory cost: ', sizeof(cn_by_type)/1024, ' KB;'
   cn_by_type = 0
 
   d = maxval(cutoffs(:,:))
@@ -274,6 +275,8 @@ SUBROUTINE find_neighbors(cutoffs, cal_delta)
         end do
         end do
         end do
+        k = k + 1
+        call progress_bar(k, natom)
       end do
 
   end do

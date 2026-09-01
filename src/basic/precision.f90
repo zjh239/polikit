@@ -1,4 +1,5 @@
 MODULE precision
+!     use, intrinsic :: iso_fortran_env, only : dp => real64
     IMPLICIT NONE
     save
     public
@@ -8,7 +9,7 @@ MODULE precision
 !     integer, parameter :: inp = selected_int_kind(18)
 !     integer, parameter :: dp = selected_real_kind(15, 307)
 
-    real(dp), parameter :: pi = 3.141592653589793 , r2d = 180.0/pi
+    real(dp), parameter :: pi = acos(-1._dp), r2d = 180.0_dp/pi
     integer :: ierr
     character(len=80) :: emsg
 !     real :: start, finish

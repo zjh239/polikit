@@ -35,7 +35,7 @@ subroutine get_rdf(cutoffs)
     real(dp), allocatable :: ideal_count(:) ! theoratical value from calculation
     integer, allocatable :: sum_rdf(:)
 
-    print *, "Radial distribution function calculation ... Start'"
+    print *, info//" Radial distribution function calculation ... Start'"
 
     ! initialize raw data array.
     cap = 100
@@ -130,7 +130,7 @@ subroutine get_rdf(cutoffs)
     allocate(ideal_count(bin_count))
     allocate(sum_rdf(bin_count))
 
-    ideal_count = 4*pi*bin_info(1,:)**2*bin_size*atom_density*natom
+    ideal_count = 4*pi*bin_info(2,:)**2*bin_size*atom_density*natom
     sum_rdf = [(sum(rdf_raw(:,:,o)), o=1, bin_count)]
 
     rdf_data(1,:) = sum_rdf/ideal_count
@@ -138,7 +138,7 @@ subroutine get_rdf(cutoffs)
     o = 2
     do p = 1, ntype
         do q = p, ntype
-            ideal_count = 4*pi*bin_info(1,:)**2*bin_size*atom_density*natom*atom_frac(p)*atom_frac(q)
+            ideal_count = 4*pi*bin_info(2,:)**2*bin_size*atom_density*natom*atom_frac(p)*atom_frac(q)
             rdf_data(o,:) = rdf_raw(p,q,:)/ideal_count
             o = o+1
         end do
@@ -251,7 +251,7 @@ end subroutine push_to_histbin
 subroutine print_rdf()
     implicit none
     integer :: i, j, t
-    character(len=9) :: str
+    character(len=10) :: str
     character(:), allocatable :: head
     real(dp), allocatable :: row(:)
 
@@ -267,8 +267,8 @@ subroutine print_rdf()
     end do
 
     print *, head
-    do i = 1, size(bin_info(1,:))
-        row(1) = bin_info(1,i)
+    do i = 1, size(bin_info(2,:))
+        row(1) = bin_info(2,i)
         row(2:) = rdf_data(:,i)
         print '(*(f8.4))', row
     end do

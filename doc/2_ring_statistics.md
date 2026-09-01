@@ -18,10 +18,9 @@ This method uses a simple and straightforward method to identify the primitive r
 
 There are two problems in earlier developed code:
 
-1. The code gets slower when the ring list gets larger and new primitive rings are kept pushing into the ring list. This is because the ring list has a dynamic size, and allocating memory can be slower when the size is large. Of course, dumping the rings found to a external file can solve this problem, but in this way it is not impossible to avoid repeat analysis of ring.\
-To improve the performance, the ring list size is set to a constant and will double its size when full.
+1. The code gets slower when the ring list gets larger and new primitive rings are kept pushing into the ring list. This is because the ring list has a dynamic size, and allocating memory can be slower when the size is large. Of course, dumping the rings found to a external file can solve this problem, but in this way it is not impossible to avoid repeat analysis of ring. To improve the performance, the ring list size is set to a constant and will double its size when full.
 
-2. Many repeat analysis are performed. Usually the repeat analysis of a ring is regarded as a double check of if the ring is really primitive. This is more like a compromise.\
+2. Many repeat analysis are performed. Usually the repeat analysis of a ring is regarded as a double check of if the ring is really primitive. This is more like a compromise.
 To solve this problem, for each ring found in the code, the atoms on the ring are stored in two ways: unsorted (to keep the topological information), and sorted (to identity each unique ring). When a new ring is found and not checked, the search is first performed to make sure that no repeat analysis is performed.
 
 In the following are the detailed steps of RSA.
@@ -38,7 +37,7 @@ In this step two types of rings are checked, i.e., even ring and odd ring. For a
 
 Visibility array contains whether a path is "visible" to another path, i.e., whether a ring can be formed with these two paths. Give *N* as the total number of paths in the Path list array, the visibility array would be a logical type array with size of *N*x*N*. For two paths namely *a* and *b*, the logical element at position (*a*,*b*) determines whether these two paths can form a ring. It has following benefits: 1. From last step we know the odd ring branches should not have further elements, so we just set their visibility false to all other paths. 2. For even rings, all the branches inherited from one of the ring's two branches should not form new rings, thus the corresponding section of the visibility array should be false. 3. It guarantees that every ring is formed by two distinct branches from the center atom.
 
-The visibility array is the part that costs the largest memory, though it is just an array of logical type. When the atom coordinates are large in general, the path list will usually has a large size. Assuming the size is *K*, then the visibility array will have a size of *KxK*. If the memory cost of path list array is on the level of tens of MB, the visibility array can cost hundreds of GB! So this part is the bottle neck of memory at this moment. According to the primitive ring criteria, it is necessary that between a pair of nodes there must be two shortest paths. Therefore, from the shortest path array, the atoms that appear for more than once are considered end nodes of rings. Each ring found is further checked before recognized as a primitive ring.
+The visibility array is the part that costs the largest memory, though it is just a logical type array. When the atom coordinates are large in general, the path list will usually has a large size. Assuming the size is *K*, then the visibility array will have a size of *KxK*. If the memory cost of path list array is on the level of tens of MB, the visibility array can cost hundreds of GB! So this part is the bottle neck of memory at this moment. According to the primitive ring criteria, it is necessary that between a pair of nodes there must be two shortest paths. Therefore, from the shortest path array, the atoms that appear for more than once are considered end nodes of rings. Each ring found is further checked before recognized as a primitive ring.
 
 #### 2.1.3 Remove non-primitive rings
 

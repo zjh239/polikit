@@ -128,7 +128,7 @@ SUBROUTINE create_path_list(id_in, lvlim, pathArray)
                     ! Expand the path list for new path
                     allocate(tmp(size(pathArray(:,1))+1, size(pathArray(1,:))))
                     tmp(:size(pathArray(:,1)),:) = pathArray
-                    deallocate(pathArray)  ! deallocated?
+                    deallocate(pathArray)
                     call move_alloc(tmp, pathArray)
 
                     row = row+1
@@ -174,6 +174,7 @@ SUBROUTINE find_rings(pathlist, mainringlist)
     integer(inp) :: rma, rmb, id, q, t(1), lvl, n, mxlvl, l, j, id2, id0, n1, n2
     integer(inp) :: row, row_2
     real(dp) :: start, end
+    logical :: check_odd
 
     call cpu_time(tstart)
 
@@ -254,7 +255,7 @@ SUBROUTINE find_rings(pathlist, mainringlist)
                                 crude_ring_num = crude_ring_num +1
 
                                 call add_ring(pathlist(row,:lvl), pathlist(row_2,:lvl), mainringlist)
-
+!                                 call mod_pr_gut(pathlist(row,:lvl), pathlist(row_2,:lvl), vis, pathlist)
                                 call mod_pr(pathlist(row,:lvl), pathlist(row_2,:lvl), vis, pathlist)
                                 call cpu_time(tstart)
                             end if
@@ -584,6 +585,32 @@ subroutine new_check_rp(ar, mainringlist, pos, goal_found)
         return
     end if
 end subroutine new_check_rp
+
+! Guttman definition
+subroutine mod_pr_gut(branch1, branch2, vis, pathlist)
+    implicit none
+    integer(inp), intent(in) :: pathlist(:,:)
+    integer(inp), intent(in) :: branch1(:), branch2(:)
+    logical, intent(inout) :: vis(:,:)
+    integer(inp) :: k, m, a, i, j
+!     logical :: isodd
+    logical, allocatable :: mask1(:), mask2(:), tmp(:)
+
+    k = size(branch1)
+    m = size(vis(:,1))
+    allocate(mask1(m), source = .true.)
+    allocate(mask2(m), source = .true.)
+
+    mask1 = pathlist(:,2) == branch1(2)
+    mask2 = pathlist(:,2) == branch2(2)
+
+    vis(trueloc(mask1), trueloc(mask2)) = .false.
+    vis(trueloc(mask2), trueloc(mask1)) = .false.
+
+    deallocate(mask1)
+    deallocate(mask2)
+!     deallocate(tmp)
+end subroutine mod_pr_gut
 
 ! Modify the visibility array according to the primitive ring definition.
 SUBROUTINE mod_pr(branch1, branch2, vis, pathlist)

@@ -20,7 +20,6 @@ end subroutine init_hash
 ! hash function to turn a flaxible size sorted ring list to a hash value,
 ! the function returns the bucket number.
 pure integer(int64) function hash_ring(key)
-    use iso_fortran_env, only: int64
     implicit none
     ! IN:
     integer, intent(in) :: key(:)
@@ -160,7 +159,7 @@ subroutine r_list_expand(l1, l2, l3, l4, l5)
     deallocate(l5)
     call move_alloc(tmp_64, l5)
 
-    print '(a,i0,a)', ' Ring list expanded, space cost: ', 2.5*sizeof(l1)/1024, ' KB;'
+    print '(a,i0,a)', ' Ring list expanded to: ', 3*sizeof(l1)/1024, ' KB;'
 
 end subroutine r_list_expand
 

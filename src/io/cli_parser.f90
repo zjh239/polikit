@@ -15,9 +15,7 @@ contains
     n = iargc()
 
     if(n == 0) then
-        call cite_msg()
         call help_msg()
-        call version_msg()
         stop
     end if
 
