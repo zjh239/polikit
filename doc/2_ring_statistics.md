@@ -101,3 +101,7 @@ When the mid-nodes are found, we follows the decrease of the distance to get the
 #### 2.3.3 Check each ring for shortcut
 
 Every pair of atom and its corresponding mid-node on the found ring is checked to make sure there is no short-cut between them. Otherwise they are removed from the list.
+
+### 2.4 Afterword at Sep 2026
+
+There is always some very minor variance between my code and RINGS, and Julia rings package. I made a small modification on how the VA is modified, in a way that it will not be modified immediately when a ring (valid or not) is spotted, but the modification will be merged to the actual VA at the end of the current level, i.e., branch length. This can avoid the mistake that, when there are two rings both primitive, they must have the same length and also big part of them are shared, during analysis one of them will be wrongly skipped.

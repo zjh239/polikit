@@ -8,15 +8,16 @@ MODULE rings_v2
     use logger
     IMPLICIT NONE
 
+    ! ring data
     integer, allocatable, dimension(:,:) :: ring_list_sorted
     integer, allocatable, dimension(:,:) :: ring_list_raw
-
     integer, allocatable, dimension(:) :: ring_len_list
+
+    ! hash related
     integer, allocatable, dimension(:) :: next_in_bucket
     integer(int64), allocatable, dimension(:) :: raw_hash_value
 
     integer(int64), allocatable :: path_list_size(:)
-
     integer :: ringlist_cap, ringlist_size  ! Main ring list capacity and current size.
 
     real(dp) :: tstart, tcheck, tneilist, tfindring, tcheckrepi, tcheckpr, taddring
@@ -79,10 +80,6 @@ SUBROUTINE rsa_v2(maxlvl)     ! Ring statistics analysis simple
 
     mean_path_size = sum(path_list_size(:))/size(path_list_size)
     print *, info//' Average path list array size is:', mean_path_size
-
-!     do atom = 1, ringlist_size
-!         print '(I0, *(2x,I0))', atom, ringList(atom)%element
-!     end do
 
     print *, info//' Crude ring number found:', crude_ring_num
 
@@ -179,7 +176,7 @@ SUBROUTINE find_rings(pathlist)
     ! PRIVATE:
 !     type(ring), allocatable, dimension(:) :: ringlist
     integer :: mxrow
-    logical, allocatable, dimension(:,:) :: vis
+    logical, allocatable, dimension(:,:) :: vis, vis_copy
     logical, allocatable, dimension(:) :: bpoint
     integer, allocatable, dimension(:,:) :: vispl
 !     integer(inp), dimension(:), allocatable :: smlst
@@ -198,6 +195,7 @@ SUBROUTINE find_rings(pathlist)
     id0 = pathlist(1,1)
 
     allocate(vis(mxrow,mxrow), source=.true.)
+    allocate(vis_copy(mxrow,mxrow), source=.true.)
     forall (j = 1:mxrow)
         vis(j,j) = .false.
     end forall
@@ -222,6 +220,7 @@ SUBROUTINE find_rings(pathlist)
 
     do lvl = 3, mxlvl
         id  = pathlist(1,lvl)
+        vis_copy = vis
         do row = 1, mxrow
             if (pathlist(row, lvl) == 0) then
                 vis(row,:) = .false.
@@ -238,7 +237,7 @@ SUBROUTINE find_rings(pathlist)
 
                     if (bpoint(row_2) .or. pathlist(row_2, lvl) /= id2) then
 
-                        if (vis(row, row_2)) then
+                        if (vis_copy(row, row_2)) then
                         id2 = pathlist(row_2,lvl)
 
                             ! check for odd ring
@@ -275,10 +274,9 @@ SUBROUTINE find_rings(pathlist)
     !     call printl(vb)
         end do
 
-        if (all(vis .eqv. .false.)) then
-    !         print *, 'Visibility array full of FALSE at level ', lvl,', quit.'
-            exit
-        end if
+!         if (all(vis .eqv. .false.)) then
+!             exit
+!         end if
     end do
 
     deallocate(bpoint)
@@ -304,7 +302,7 @@ FUNCTION checkShortCut(rr) RESULT(no_short_cut)
     integer, allocatable, dimension(:) :: tmp
     integer :: lvl, j, n, m, l, distance
     integer :: brlen, clen, mxlvl  !
-    
+
     call cpu_time(tstart)
     l = size(rr)
 
@@ -443,7 +441,7 @@ function add_ring(branch1, branch2) result(add_success)
 
     add_success = .false.
     k = size(branch1)
-    
+
     ! need allocation
     if (max_ring_size == 0) stop error//' Max ring size not initialized correctly, quit.'
 
@@ -600,14 +598,14 @@ subroutine print_ringno(ring_l)
       amount(i) = count(ring_l == i)
     end do
 
-    print *, info//' Ring statistics distribution'
+    print *, info//' - - - Ring statistics distribution - - -'
     print *, info//' - - - - - - - - - - - - - - - - - - - - - -'
     print 107, ' | Size  | ',rank
     print 107, ' | Count | ',amount(0:maxn)
     print *, info//' - - - - - - - - - - - - - - - - - - - - - -'
 107 format (a11,*(i6, ' | '))
 
-    print *, info//' RSA Time Cost'
+    print *, info//' - - - - RSA Time Cost - - - -'
     print *, info//' - - - - - - - - - - - - - - - - - - - - - -'
     print *, '| T(Path List)  | T(Find Ring)  | T(Chk&Insert) | T(PR Check)   | T(VA modif)   |'
     print 108, tneilist, tfindring, tcheckrepi, tcheckpr, taddring
