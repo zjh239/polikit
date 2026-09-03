@@ -2,7 +2,7 @@
 
 There are several different definitions of a ring in atom system. It is important to make it clear before any further comparison of the data. This is because it determines how the analysis is performed and affects the results significantly. There are some definitions that have been used:
 
-**King’s criteria** - given two adjacent nodes (atoms), a ring is the shortest path from one node (atom) to the other.
+**King’s criteria** - given two adjacent nodes (atoms), a ring is the shortest path from one node (atom) to the other. For this type of ring, shortcut check will not be performed, thus the distribution is usually the greatest.
 
 **Shortest path criteria** - given a center node (atom) and two of its neighbors, a ring is the shortest path from one neighbor to the other without passing the center node (atom).
 
@@ -37,15 +37,15 @@ In this step two types of rings are checked, i.e., even ring and odd ring. For a
 
 Visibility array contains whether a path is "visible" to another path, i.e., whether a ring can be formed with these two paths. Give *N* as the total number of paths in the Path list array, the visibility array would be a logical type array with size of *N*x*N*. For two paths namely *a* and *b*, the logical element at position (*a*,*b*) determines whether these two paths can form a ring. It has following benefits: 1. From last step we know the odd ring branches should not have further elements, so we just set their visibility false to all other paths. 2. For even rings, all the branches inherited from one of the ring's two branches should not form new rings, thus the corresponding section of the visibility array should be false. 3. It guarantees that every ring is formed by two distinct branches from the center atom.
 
-The visibility array is the part that costs the largest memory, though it is just a logical type array. When the atom coordinates are large in general, the path list will usually has a large size. Assuming the size is *K*, then the visibility array will have a size of *KxK*. If the memory cost of path list array is on the level of tens of MB, the visibility array can cost hundreds of GB! So this part is the bottle neck of memory at this moment. According to the primitive ring criteria, it is necessary that between a pair of nodes there must be two shortest paths. Therefore, from the shortest path array, the atoms that appear for more than once are considered end nodes of rings. Each ring found is further checked before recognized as a primitive ring.
+The visibility array is the part that costs the largest memory, though it is just a logical type array. Two key factors can lead to especially long path list. First is the average coordination of the system, i.e., how densely connected are the atoms in the system. Second is the maximum path length given from the input. This means that for a closely packed system, the maximum level should be set relatively lower. Assuming the size is *K*, then the visibility array will have a size of *KxK*. If the memory cost of path list array is on the level of tens of kB, the visibility array can cost hundreds of MB.
+
+According to the primitive ring criteria, it is necessary that between a pair of nodes there must be two shortest paths. Therefore, from the shortest path array, the atoms that appear for more than once are considered end nodes of rings. Each ring found is further checked before recognized as a primitive ring. Before V0.4.5, there is always some small variance between this code and RINGS, or Julia rings package. It was found to be due to the immediate modification of the VA. So that the VA modification is moved to end of every length level.
 
 #### 2.1.3 Remove non-primitive rings
 
 For each ring found in last step, we first check that it is not found already. Because of the sorted index of atoms on the ring, a binary search method can be performed to make search fast. If the max ring size is `M`, and the number of rings is `N`, the complexity of this part is roughly `O(MlogN)`.
 
-If the ring is not analyzed yet, a shortest path search is performed on each node and its mid-node, as defined by Yuan. This is to check if there is shortcut other than the two ring branches between them. If any shortcut is found, the ring will not be pushed to the is removed from the ring list, so that the rings left in the list are all primitive rings at the end of analysis.
-
-The primitive ring search will be performed over all the atoms to find all the primitive rings.
+If the ring is not analyzed yet, a shortest path search is performed on each node and its mid-node, as defined by Yuan. This is to check if there is shortcut other than the two ring branches between them. If any shortcut is found, the ring will not be pushed to the ring list, so that the rings left in the list are all primitive rings at the end of analysis.
 
 ### 2.2 Another method
 
@@ -104,4 +104,4 @@ Every pair of atom and its corresponding mid-node on the found ring is checked t
 
 ### 2.4 Afterword at Sep 2026
 
-There is always some very minor variance between my code and RINGS, and Julia rings package. I made a small modification on how the VA is modified, in a way that it will not be modified immediately when a ring (valid or not) is spotted, but the modification will be merged to the actual VA at the end of the current level, i.e., branch length. This can avoid the mistake that, when there are two rings both primitive, they must have the same length and also big part of them are shared, during analysis one of them will be wrongly skipped.
+

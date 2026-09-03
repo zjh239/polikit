@@ -3,6 +3,7 @@ MODULE rings_simple
     USE data_input, only: natom, coord_data
     USE neighbor_finder, only: neigh_list
     USE stdlib_array
+    use logger
     IMPLICIT NONE
 
     ! ring data
@@ -38,6 +39,7 @@ SUBROUTINE rsa_simple(maxlvl)     ! Ring statistics analysis simple
     tcheckpr = 0.
     taddring = 0.
 
+    print *, info//' Starting RSA analysis, the old version;'
     print *, 'Max branch length:', maxlvl
     if(.not. allocated(path_list_size)) allocate(path_list_size(natom))
 

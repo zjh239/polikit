@@ -80,6 +80,16 @@ contains
             if (k /= 0) then
                 stop error//' 2nd argument after -ring should be the limit of max. path length.'
             end if
+        case('-rsgut')
+            flag_nf = .true.
+            flag_rsgut = .true.
+            call get_command_argument(i+1, cutoff_str)
+            print *, info//' Cutoff values are:', cutoff_str
+            call get_command_argument(i+2, args)
+            read (args, *, iostat=k) max_ring_lim
+            if (k /= 0) then
+                stop error//' 2nd argument after -ring should be the limit of max. path length.'
+            end if
         case('-tct')
             flag_nfd = .true.
             flag_tct = .true.

@@ -48,6 +48,7 @@ SUBROUTINE rsa_v2(maxlvl)     ! Ring statistics analysis simple
     tcheckrepi = 0.
     tcheckpr = 0.
     taddring = 0.
+    print *, info//' Starting RSA analysis with primitive ring criteria;'
 
     max_ring_size = maxlvl*2
     print *, info//' Max branch length:', maxlvl

@@ -14,6 +14,7 @@ module init
     use dynamic_data
     use rings_simple, only: rsa_simple
     use rings_v2, only: rsa_v2
+    use rings_gut, only: rsa_gut
     use data_input
     use ha
     use d2min
@@ -43,6 +44,7 @@ subroutine static_analysis(cur_frame)
     if (flag_poly) call poly_neighbor()
     if (flag_bad) call bond_angle()
     if (flag_rstat) call rsa_simple(max_ring_lim)
+    if (flag_rsgut) call rsa_gut(max_ring_lim)
 !     if (flag_rstat) call rsa_v2(max_ring_lim)
     if (flag_ha) call calculate_ha()
     if (flag_nfd .and. flag_d2min) call find_neighbors(d2min_r, .true.)

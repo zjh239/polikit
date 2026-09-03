@@ -9,6 +9,7 @@ module flags
     logical :: flag_poly = .false.  ! poly_analysis flag.
     logical :: flag_bad = .false.   ! if bond angle distribution is analyzed.
     logical :: flag_rstat = .false. ! ring statistics analysis.
+    logical :: flag_rsgut = .false. ! Guttman ring statistics analysis.
     logical :: flag_rdf = .false.   ! radial distribution function.
     logical :: flag_wa = .false.    ! Wendt-Abraham parameter from RDF.
     logical :: flag_ha = .false.    ! Honeycutt-Anderson parameters.
