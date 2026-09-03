@@ -102,6 +102,3 @@ When the mid-nodes are found, we follows the decrease of the distance to get the
 
 Every pair of atom and its corresponding mid-node on the found ring is checked to make sure there is no short-cut between them. Otherwise they are removed from the list.
 
-### 2.4 Afterword at Sep 2026
-
-

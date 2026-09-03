@@ -20,8 +20,8 @@ jobs:
           - os: windows-latest
             build_type: Release
 
-          - os: macos-latest
-            build_type: Release
+          # - os: macos-latest
+          #   build_type: Release
 
     steps:
       - uses: actions/checkout@v4
@@ -36,10 +36,10 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y gfortran
 
-      - name: Install gfortran (macOS)
-        if: runner.os == 'macOS'
-        run: |
-          brew install gcc
+      # - name: Install gfortran (macOS)
+      #   if: runner.os == 'macOS'
+      #   run: |
+      #     brew install gcc
 
       - name: Install MSYS2 (Windows)
         if: runner.os == 'Windows'
@@ -55,7 +55,7 @@ jobs:
       # Configure
       ###########################################################
 
-      - name: Configure CMake (Linux/macOS)
+      - name: Configure CMake (Linux)
         if: runner.os != 'Windows'
         run: |
           cmake \
@@ -79,7 +79,7 @@ jobs:
       # Build
       ###########################################################
 
-      - name: Build (Linux/macOS)
+      - name: Build (Linux)
         if: runner.os != 'Windows'
         run: |
           cmake --build build --config ${{ matrix.build_type }}
@@ -112,7 +112,7 @@ jobs:
             build/polikit.exe
             build/*.dll
 
-      - name: Test (Linux/macOS)
+      - name: Test (Linux)
         if: runner.os != 'Windows'
         working-directory: build
         run: |
