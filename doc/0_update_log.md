@@ -3,6 +3,8 @@
 ### Logs
 _2026 June_
 
+- The Guttman and King's criteria still has problem.
+
 - The `Toml` support is added. This is because I keep forgetting what I have done using the code. So now you can either use a `.toml` format script to start the analysis, or when you run the code through CLI, it will write a `.toml` format script so that you can re-run your analysis later.
 
 - When there is a "-" in the file name, it will be recognized as an option then reports error. We should only check the first letter not using 'verify'.
@@ -31,15 +33,11 @@ _2026 June_
 
 4. Atom type for pure silicon.
 
-~5. RSA path list build part optimization.~ Results show that there is no great difference, unlike the main ring list part. It is actually more important to optimize the algorithm of 'find rings' part.
-
-6. RSA further analysis of the results, including roundness (1 - variance/mean), or eccentricity (sqrt(1-(b/a)^2)). RSA based on other ring types, such as shortest-path rings.
+6. RSA further analysis of the results, including roundness (1 - variance/mean), or eccentricity (sqrt(1-(b/a)^2)). RSA based on Guttman and King's criteria.
 
 12. More detailed polyhedral analysis data. The question is about multi-cation system, we hope to see if only certain kind of polyhedra are forming a different kind of network, e.g., AlO polyhedra in CaAl glass system is forming a CS polyhedra system.
 
-13. Use openMP to do multi-thread analysis. Maybe starting with neighbor constructing and polyhedral analysis.
-
-7. set the branch length parameter for RSA from CLI.
+~13. Use openMP to do multi-thread analysis. Maybe starting with neighbor constructing and polyhedral analysis.~
 
 8. cavity analysis
 
