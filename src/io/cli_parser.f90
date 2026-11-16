@@ -58,23 +58,23 @@ contains
         case('-rdf')
             flag_rdf = .true.
             call get_command_argument(i+1, cutoff_str)
-            print *, info//' RDF cutoff value is:', cutoff_str
+            print *, info//' RDF cutoff value is: ', cutoff_str
         case('-d2min')
             flag_nfd = .true.
             flag_d2min = .true.
             call get_command_argument(i+1, args)
             read (args, *) d2min_r(1,1)
-            print *, info//' D2min cutoff value is:', d2min_r(1,1)
+            print *, info//' D2min cutoff value is: ', d2min_r(1,1)
         case('-bad')
             flag_nfd = .true.
             flag_bad = .true.
             call get_command_argument(i+1, cutoff_str)
-            print *, info//' Cutoff values are:', cutoff_str
+            print *, info//' Cutoff values are: ', cutoff_str
         case('-ring')
             flag_nf = .true.
             flag_rstat = .true.
             call get_command_argument(i+1, cutoff_str)
-            print *, info//' Cutoff values are:', cutoff_str
+            print *, info//' Cutoff values are: ', cutoff_str
             call get_command_argument(i+2, args)
             read (args, *, iostat=k) max_ring_lim
             if (k /= 0) then

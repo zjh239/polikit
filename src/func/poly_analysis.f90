@@ -8,7 +8,7 @@ module poly_analysis
   use logger
   use data_types
   use data_input, only: coord_data, o_type, natom
-  use neighbor_finder, only: neigh_list
+  use neighbor_finder, only: neigh_list, cn_by_type
   implicit none
 
   ! polyhedron
@@ -146,15 +146,21 @@ SUBROUTINE poly_neighbor()
 !   end do
 !   print *, 'Dumping polyhedral analysis data ... Done'
 !   close(399)
+    !
+    j = maxval(poly_n(:))
+    do i = 1, j
+        print '(a,i0,a,i0)', ' '//info//' ',  count(poly_n==i), ' polyhedra with neighbor poly number = ', i
+    end do
+    print '(a,i0,a)', ' '//info//' ',  count(poly_n>0), ' total number of polys with positive neighbor number;'
 
-  print *, ' ### Polyhedra Topological Analysis'
-  print *, '***************************'
-  print *, "|   CS   |   ES   |   FS   |"
-  print 138, 'p| ', count(ln==1), count(ln==2), count(ln==3)
-  print *, '***************************'
-  print *, 'Polyhedral analysis ... Done'
+    print *, info//' # Polyhedra Topological Analysis'
+    print *, '***************************'
+    print *, "|   CS   |   ES   |   FS   |"
+    print 138, 'p| ', count(ln==1), count(ln==2), count(ln==3)
+    print *, '***************************'
+    print *, info//' Polyhedral analysis ... Done'
 
-  end associate
+    end associate
 
 138 format (a3,*(i6, ' | '))
 
@@ -328,35 +334,47 @@ subroutine ln_change(natom,new_ln,ref_ln,out)
   return
 end subroutine ln_change
 
-! ! calculate polyhedral connectivity in a similar way to qn
-! ! name needs re-consider to avoid mixing with coordination
-! subroutine calculate_cn()
-!     implicit none
-!     integer, allocatable :: cn(:)
-!     integer :: i,j,id
-!
-!     if(.not. allocated(cn)) allocate(cn(natom))
-!     cn = 0
-!
-!     associate(ln => polys%topo_type,  &
-!             poly_n => polys%poly_neigh_number, poly_list => polys%poly_list)
-!
-!     do i = 1, natom
-!         if (ln(i) /= 1) cycle
-!         do j = 1, poly_n(i)
-!             id  = poly_list(i,j)
-!             if (ln(id) == 1 .and. coord_data%ptype(id) == o_type) then
-!                 cn(i) = cn(i) + 1
-!             end if
-!         end do
-!     end do
-!
-!     j = maxval(cn(:))
-!     do i = 1, j
-!         print '(a,i0,a,i0)', ' '//info//' ',  count(cn==i), ' cations with Qn = ', i
-!     end do
-!
-! end subroutine calculate_cn
+! calculate polyhedral connectivity in a similar way to qn
+! name needs re-consider to avoid mixing with coordination
+subroutine calculate_tetra_connectivity()
+    implicit none
+    integer, allocatable :: tetra_n(:)
+    integer :: i,j,k,ox_id, poly_n_id
+
+    if(.not. allocated(polys)) stop error//' - polyhedral analysis must be performed first.'
+    if(.not. allocated(tetra_n)) allocate(tetra_n(natom))
+    
+    tetra_n = 0
+
+    associate(topo_list => polys%topo_list, oxygen_cn => cn_by_type(:, o_type), &
+            poly_n => polys%poly_neigh_number, poly_list => polys%poly_list,&
+            ref_n => neigh_list%n_neighbor, ref_list => neigh_list%neighbors)
+        do i = 1, natom
+            if (oxygen_cn(i) /= 4) cycle  ! find tetrahedron first
+            do j = 1, ref_n(i)
+                ox_id  = ref_list(i,j)
+                if (coord_data%ptype(ox_id) /= o_type) cycle
+                do k = 1, poly_n(i)
+                    poly_n_id = poly_list(i,k)
+                        if (any(ref_list(poly_n_id, :) == ox_id) .and.& ! shares this corner
+                            topo_list(i,k) == 1 .and.&                  ! by corner-sharing
+                            oxygen_cn(poly_n_id)==4) then                   ! is tetrahedron
+                            tetra_n(i) = tetra_n(i) + 1
+                            exit
+                        end if
+                    ! end if
+                end do
+            end do
+        end do
+    end associate
+
+    j = maxval(tetra_n(:))
+    do i = 1, j
+        print '(a,i0,a,i0)', ' '//info//' ',  count(tetra_n==i), ' cations with T_n = ', i
+    end do
+    print '(a,i0,a)', ' '//info//' ',  count(tetra_n>0), ' total number of cations with positive T_n;'
+
+end subroutine calculate_tetra_connectivity
 
 ! If atom number is N, there is a list(N) to store the flexibility count.
 ! It is the number that a polyhedron has changed its type during deformation.
