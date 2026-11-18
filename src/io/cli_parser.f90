@@ -112,9 +112,12 @@ contains
             print *, info//' Cutoff values are: ', trim(cutoff_str)
         case('-qn')
             flag_qn = .true.
-            call get_command_argument(i+1, args)
-            read (args, *) ox_type_set
-            print *, info//' Manually set oxygen type as:', ox_type_set
+            flag_nf = .true.
+            call get_command_argument(i+1, cutoff_str)
+            print *, info//' Cutoff values are: ', trim(cutoff_str)
+            !call get_command_argument(i+1, args)
+            !read (args, *) ox_type_set
+            !print *, info//' Manually set oxygen type as:', ox_type_set
         case('-cluster')
             flag_cluster = .true.
             call get_command_argument(i+1, cutoff_str)

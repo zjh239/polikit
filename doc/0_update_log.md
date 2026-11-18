@@ -1,13 +1,16 @@
 ## 0. Plans and Logs
 
 ### Logs
+
+- Q_n analysis added to the coordination analysis part.
+
 _2026 June_
 
 - The Guttman and King's criteria still has problem.
 
 - The `Toml` support is added. This is because I keep forgetting what I have done using the code. So now you can either use a `.toml` format script to start the analysis, or when you run the code through CLI, it will write a `.toml` format script so that you can re-run your analysis later.
 
-- When there is a "-" in the file name, it will be recognized as an option then reports error. We should only check the first letter not using 'verify'.
+- ~When there is a "-" in the file name, it will be recognized as an option then reports error. We should only check the first letter not using 'verify'.~
 
 *2025 Mar.*
 

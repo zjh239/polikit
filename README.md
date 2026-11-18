@@ -10,9 +10,10 @@ This package is originally developed for polyhedral analysis of amorphous struct
 
 Please contact **zhgjiahui@gmail.com** if you have bugs or issues to report.
 
-#### 0.5
+#### 0.5 (_in develop_)
 
 - Read from `.toml` files.
+- Q_n analysis of oxygen atoms.
 
 #### 0.4  *(3 Mar. 2025)*
 
@@ -136,6 +137,10 @@ For dynamic analysis(`-d`):
 - Ring statistics analysis
 
 `./polikit -f ../test/ga2o3_test.xyz -p 1 -ring 2.3 8`
+
+- Q_n analysis
+
+`./polikit -f ../test/ga2o3_test.xyz -p 1 -qn 2.3`
 
 - Dynamic neighbor change analysis
 
