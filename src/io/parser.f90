@@ -129,7 +129,7 @@ function get_cutoff(str_in, type_name) result(r_list)
     ! out:
     real(dp), allocatable :: r_list(:,:)
 
-    if (index(str_in, achar(0)) > 0) stop error//' parser cannot find cutoff, quit.'
+    if (len_trim(str_in) == 0) stop error//' parser cannot find cutoff, quit.'
 
     ntype = size(type_name)
     if (allocated(r_list)) return
